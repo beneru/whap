@@ -1,174 +1,152 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, User } from 'lucide-react';
+import { CheckCircle, UserCircle } from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
 
 export default function EditorProfilePage() {
-  const { currentUser, openAuthModal, updateProfile } = useWhap();
+  const { db, currentUser, updateEditorProfile } = useWhap();
 
-  const [displayName, setDisplayName] = useState(currentUser?.display_name || '');
-  const [username, setUsername] = useState(currentUser?.username || '');
-  const [bio, setBio] = useState(currentUser?.bio || '');
-  const [nichesInput, setNichesInput] = useState(currentUser?.niches.join(', ') || '');
-  const [portfolioUrl, setPortfolioUrl] = useState(currentUser?.portfolio_url || '');
-  const [samplesInput, setSamplesInput] = useState(
-    currentUser?.sample_clip_urls.join('\n') || ''
+  const editorId = currentUser?.id || 'editor-1';
+  const editor =
+    db.profiles.find((p) => p.id === editorId) || db.profiles[2];
+
+  const [displayName, setDisplayName] = useState(editor.display_name);
+  const [bio, setBio] = useState(editor.bio);
+  const [nichesText, setNichesText] = useState(editor.niches.join(', '));
+  const [portfolioUrl, setPortfolioUrl] = useState(editor.portfolio_url);
+  const [samplesText, setSamplesText] = useState(
+    editor.sample_clip_urls.join('\n')
   );
-  const [savedMsg, setSavedMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  if (!currentUser) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center">
-        <button
-          type="button"
-          onClick={() => openAuthModal('/editor/profile')}
-          className="rounded-xl bg-tally px-4 py-2 text-xs font-bold text-zinc-950"
-        >
-          Sign In to Edit Profile
-        </button>
-      </div>
-    );
-  }
+  const [savedToast, setSavedToast] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-    setSavedMsg(null);
-    try {
-      const niches = nichesInput
+    updateEditorProfile({
+      display_name: displayName,
+      bio,
+      niches: nichesText
         .split(',')
         .map((n) => n.trim())
-        .filter(Boolean);
-      const sample_clip_urls = samplesInput
+        .filter(Boolean),
+      portfolio_url: portfolioUrl,
+      sample_clip_urls: samplesText
         .split('\n')
-        .map((u) => u.trim())
-        .filter(Boolean);
-
-      updateProfile({
-        display_name: displayName,
-        username,
-        bio,
-        niches,
-        portfolio_url: portfolioUrl.trim(),
-        sample_clip_urls,
-      });
-      setSavedMsg('Profile updated! Portfolio, niches, and sample clips saved.');
-    } catch (err) {
-      setErrorMsg((err as Error).message);
-    }
+        .map((s) => s.trim())
+        .filter(Boolean),
+    });
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3000);
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="border-b border-white/10 pb-4">
-        <span className="font-mono text-xs uppercase tracking-widest text-tally-bright">
-          Optional Portfolio &amp; Creator Identity
+    <div className="mx-auto max-w-2xl space-y-6 pb-10">
+      <div>
+        <span className="chip-sticker bg-mint text-ink">
+          <UserCircle weight="bold" className="h-4 w-4" />
+          <span>Optional Profile Details</span>
         </span>
-        <h1 className="mt-1 text-2xl font-extrabold text-white">Editor Profile Settings</h1>
-        <p className="mt-1 text-xs text-zinc-400">
-          Your @username is used on dynamic anti-theft watermarks before an Account Holder selects your clip. Portfolio, niches, and sample clips are optional.
+        <h1 className="mt-2 font-display text-3xl sm:text-4xl text-ink">
+          Editor Profile Settings
+        </h1>
+        <p className="mt-1 text-sm text-muted">
+          Portfolio links, niches, and sample clips are optional. Add them whenever
+          you want to show page owners your editing style.
         </p>
       </div>
 
-      {savedMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3.5 text-xs text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          <span>{savedMsg}</span>
+      {savedToast && (
+        <div className="flex items-center gap-2 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
+          <CheckCircle weight="bold" className="h-5 w-5" />
+          <span>Profile updated!</span>
         </div>
       )}
 
-      {errorMsg && (
-        <div className="rounded-xl border border-red-500/35 bg-red-500/10 p-3.5 text-xs text-red-300">
-          {errorMsg}
-        </div>
-      )}
-
-      <form
-        onSubmit={handleSave}
-        className="rounded-2xl border border-white/10 bg-surface p-6 space-y-4"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300">Display Name</label>
-            <input
-              type="text"
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3.5 py-2.5 text-xs text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-zinc-300">
-              Username (Watermark Handle)
-            </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3.5 py-2.5 font-mono text-xs text-white"
-            />
-          </div>
+      <form onSubmit={handleSave} className="card-sticker p-6 space-y-5">
+        <div>
+          <label
+            htmlFor="prof-display-name"
+            className="mb-1.5 block text-sm font-extrabold text-ink"
+          >
+            Display name
+          </label>
+          <input
+            id="prof-display-name"
+            type="text"
+            required
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            className="input-sticker"
+          />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300">Bio (Optional)</label>
+          <label
+            htmlFor="prof-bio"
+            className="mb-1.5 block text-sm font-extrabold text-ink"
+          >
+            Short bio (optional)
+          </label>
           <textarea
-            rows={2}
+            id="prof-bio"
+            rows={3}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Your editing style, NLE (Premiere/After Effects/CapCut Pro), turnaround speed..."
-            className="mt-1 w-full rounded-xl border border-white/10 bg-inset p-3 text-xs text-white"
+            className="input-sticker"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300">
-            Niches (Optional, comma-separated)
+          <label
+            htmlFor="prof-niches"
+            className="mb-1.5 block text-sm font-extrabold text-ink"
+          >
+            Niches you edit (comma separated, optional)
           </label>
           <input
+            id="prof-niches"
             type="text"
-            value={nichesInput}
-            onChange={(e) => setNichesInput(e.target.value)}
-            placeholder="Podcasts, AI & Tech, Gaming, Finance"
-            className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3.5 py-2.5 text-xs text-white"
+            value={nichesText}
+            onChange={(e) => setNichesText(e.target.value)}
+            className="input-sticker"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300">
-            Portfolio URL (Optional)
+          <label
+            htmlFor="prof-portfolio"
+            className="mb-1.5 block text-sm font-extrabold text-ink"
+          >
+            Portfolio website link (optional)
           </label>
           <input
+            id="prof-portfolio"
             type="url"
             value={portfolioUrl}
             onChange={(e) => setPortfolioUrl(e.target.value)}
-            placeholder="https://drive.google.com/drive/folders/..."
-            className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3.5 py-2.5 font-mono text-xs text-white"
+            className="input-sticker"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-zinc-300">
-            Sample Clip URLs (Optional, one URL per line)
+          <label
+            htmlFor="prof-samples"
+            className="mb-1.5 block text-sm font-extrabold text-ink"
+          >
+            Sample clip links (one URL per line, optional)
           </label>
           <textarea
+            id="prof-samples"
             rows={3}
-            value={samplesInput}
-            onChange={(e) => setSamplesInput(e.target.value)}
-            placeholder="https://storage.whap.app/samples/sample-1.mp4"
-            className="mt-1 w-full rounded-xl border border-white/10 bg-inset p-3 font-mono text-xs text-white"
+            value={samplesText}
+            onChange={(e) => setSamplesText(e.target.value)}
+            className="input-sticker"
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-tally py-3 text-xs font-extrabold text-zinc-950 hover:bg-tally-bright"
-        >
-          Save Editor Profile
+        <button type="submit" className="btn-sticker btn-primary">
+          <CheckCircle weight="bold" className="h-5 w-5" />
+          <span>Save Profile</span>
         </button>
       </form>
     </div>

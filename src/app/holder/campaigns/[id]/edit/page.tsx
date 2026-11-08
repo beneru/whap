@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
 import { CampaignForm } from '@/components/CampaignForm';
 
@@ -14,30 +14,34 @@ export default function EditCampaignPage() {
 
   if (!campaign) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center">
-        <p className="text-sm font-bold text-white">Campaign not found</p>
-        <Link href="/holder" className="mt-2 inline-block text-xs text-tally-bright">
-          Back to Holder Dashboard
+      <div className="py-10 text-center space-y-4">
+        <h1 className="font-display text-3xl text-ink">Campaign not found</h1>
+        <Link href="/holder" className="btn-sticker btn-primary">
+          <span>Back to Dashboard</span>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
+    <div className="mx-auto max-w-4xl space-y-6 pb-10">
       <Link
         href={`/campaigns/${campaign.id}`}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white"
+        className="inline-flex items-center gap-1.5 text-sm font-extrabold text-forest hover:underline"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to Campaign
+        <ArrowLeft weight="bold" className="h-4 w-4" />
+        <span>Back to Campaign</span>
       </Link>
+
       <div>
-        <span className="font-mono text-xs uppercase tracking-widest text-tally-bright">
-          Edit Campaign Settings &amp; Status
-        </span>
-        <h1 className="mt-1 text-2xl font-extrabold text-white">Edit: {campaign.title}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl text-ink">
+          Edit: {campaign.title}
+        </h1>
+        <p className="mt-1 text-sm text-muted">
+          Clips you already picked keep their locked-in pay rate.
+        </p>
       </div>
+
       <CampaignForm existingCampaign={campaign} />
     </div>
   );

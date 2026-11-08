@@ -2,481 +2,481 @@
 
 import React, { useState } from 'react';
 import {
-  AlertTriangle,
-  CheckCircle2,
+  ArrowSquareOut,
+  Broadcast,
+  CheckCircle,
   Clock,
-  ExternalLink,
-  TrendingUp,
-} from 'lucide-react';
+  PlusCircle,
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
 import {
-  calculateCampaignBudgetSummary,
   formatMoneyCents,
   getPostDeadlineStatus,
   getViewUpdateReminderStatus,
 } from '@/lib/payout-math';
-import { PlatformBadge, SubmissionStatusChip } from '@/components/StatusChip';
-import { PlatformId } from '@/lib/types';
+import { SubmissionStatusChip } from '@/components/StatusChip';
+import { ProtectedVideoPlayer } from '@/components/ProtectedVideoPlayer';
 
-export default function HolderPostedAndViewsPage() {
+export default function PostedClipsAndViewsPage() {
   const {
     db,
-    currentUser,
-    openAuthModal,
-    submitPostUrl,
-    addViewSnapshot,
-    flagOverduePostDeadline,
+    submitPostUrlForClip,
+    recordManualViewSnapshot,
+    triggerMissedDeadlineCheck,
   } = useWhap();
 
-  // State for submitting Post URL on a selected clip
-  const [postUrlTargetId, setPostUrlTargetId] = useState<string | null>(null);
-  const [postUrlInput, setPostUrlInput] = useState(
-    'https://www.tiktok.com/@apexclipspage/video/743998123456'
-  );
-  const [postPlatformInput, setPostPlatformInput] = useState<PlatformId>('tiktok');
-  const [initialViewsInput, setInitialViewsInput] = useState(1200);
-  const [initialProofInput, setInitialProofInput] = useState(
-    'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop&q=80'
+  const activeClips = db.submissions.filter(
+    (s) =>
+      s.status === 'selected' || s.status === 'posted' || s.status === 'paid'
   );
 
-  // State for logging a new 7-day View Snapshot
-  const [snapshotTargetId, setSnapshotTargetId] = useState<string | null>(null);
-  const [newViewsInput, setNewViewsInput] = useState(32000);
-  const [newProofUrlInput, setNewProofUrlInput] = useState(
-    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80'
-  );
-  const [newSnapshotNote, setNewSnapshotNote] = useState('Weekly creator studio screenshot check');
+  const [postUrlMap, setPostUrlMap] = useState<Record<string, string>>({});
+  const [initViewsMap, setInitViewsMap] = useState<Record<string, number>>({});
+  const [initProofMap, setInitProofMap] = useState<Record<string, string>>({});
+
+  const [snapViewsMap, setSnapViewsMap] = useState<Record<string, number>>({});
+  const [snapProofMap, setSnapProofMap] = useState<Record<string, string>>({});
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!currentUser) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center">
-        <button
-          type="button"
-          onClick={() => openAuthModal('/holder/posted')}
-          className="rounded-xl bg-tally px-4 py-2 text-xs font-bold text-zinc-950"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
-
-  const selectedAwaitingPost = db.submissions.filter((s) => s.status === 'selected');
-  const postedClips = db.submissions.filter((s) => ['posted', 'paid'].includes(s.status));
-
-  const handlePostUrlSubmit = async (e: React.FormEvent, submissionId: string) => {
-    e.preventDefault();
+  const handleSavePostUrl = (submissionId: string) => {
     setErrorMsg(null);
     setToastMsg(null);
     try {
-      const updated = await submitPostUrl({
+      const post_url =
+        postUrlMap[submissionId] ||
+        'https://www.tiktok.com/@apexclipspage/video/7409988776655';
+      const initial_views = initViewsMap[submissionId] ?? 1200;
+      const proof_url =
+        initProofMap[submissionId] ||
+        'https://storage.whap.app/proofs/initial-post-screenshot.png';
+
+      submitPostUrlForClip({
         submission_id: submissionId,
-        posted_url: postUrlInput,
-        posted_platform: postPlatformInput,
-        initial_views: initialViewsInput,
-        proof_url: initialProofInput,
+        post_url,
+        initial_views,
+        proof_url,
       });
-      setPostUrlTargetId(null);
-      setToastMsg(
-        `Submitted live post URL for ${updated.file_name}! 30-day view tracking is now active.`
-      );
+      setToastMsg('Post link saved! View tracking is now active.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
   };
 
-  const handleAddSnapshotSubmit = async (e: React.FormEvent, submissionId: string) => {
-    e.preventDefault();
+  const handleAddSnapshot = (submissionId: string, currentViews: number) => {
     setErrorMsg(null);
     setToastMsg(null);
     try {
-      const snap = await addViewSnapshot({
+      const views = snapViewsMap[submissionId] ?? currentViews + 8500;
+      const proof_url =
+        snapProofMap[submissionId] ||
+        'https://storage.whap.app/proofs/day14-analytics-proof.png';
+
+      recordManualViewSnapshot({
         submission_id: submissionId,
-        views: newViewsInput,
-        source: 'manual',
-        proof_url: newProofUrlInput,
-        note: newSnapshotNote,
+        views,
+        proof_url,
       });
-      setSnapshotTargetId(null);
-      setToastMsg(
-        `Saved view snapshot (${snap.views.toLocaleString()} views) and updated editor earnings & ledger!`
-      );
+      setToastMsg('View snapshot saved and editor pay recalculated.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
+  };
+
+  const handleFlagMissedDeadlines = () => {
+    const count = triggerMissedDeadlineCheck();
+    setToastMsg(
+      count > 0
+        ? `Flagged ${count} overdue clip and alerted the editor and admin.`
+        : 'All picked clips are within their 72h posting window.'
+    );
   };
 
   return (
-    <div className="space-y-8">
-      <div className="border-b border-white/10 pb-4">
-        <span className="font-mono text-xs uppercase tracking-widest text-tally-bright">
-          72h Post URL SLA · 7-Day View Snapshot Updates
-        </span>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white">
-          Posted Clips &amp; View Tracking
-        </h1>
-        <p className="mt-1 text-xs text-zinc-400">
-          Submit the live post URL within 72h of selecting a clip, then log view snapshots with screenshot proof at least every 7 days.
-        </p>
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl sm:text-4xl text-ink">
+            Posted Clips &amp; View Tracking
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Post picked clips within 72 hours and log view counts with screenshot
+            proof at least every 7 days.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleFlagMissedDeadlines}
+          className="btn-sticker btn-sun text-xs"
+        >
+          <Clock weight="bold" className="h-4 w-4" />
+          <span>Check 72h Post Deadlines</span>
+        </button>
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3.5 text-xs text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded-xl border border-red-500/35 bg-red-500/10 p-3.5 text-xs text-red-300">
-          {errorMsg}
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* SECTION A: SELECTED CLIPS AWAITING POST URL (72h SLA) */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Clock className="h-5 w-5 text-amber-400" />
-            1. Selected Clips Awaiting Post URL ({selectedAwaitingPost.length})
-          </h2>
-        </div>
+      <div className="space-y-6">
+        {activeClips.map((sub) => {
+          const camp = db.campaigns.find((c) => c.id === sub.campaign_id);
+          const editor = db.profiles.find((p) => p.id === sub.editor_id);
+          const snapshots = db.view_snapshots.filter(
+            (v) => v.submission_id === sub.id
+          );
+          const deadlineInfo = getPostDeadlineStatus(sub);
+          const reminderInfo = getViewUpdateReminderStatus(
+            sub,
+            db.settings.view_update_interval_days
+          );
 
-        {selectedAwaitingPost.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-surface p-6 text-xs text-zinc-400">
-            All selected clips have live post URLs submitted.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {selectedAwaitingPost.map((sub) => {
-              const camp = db.campaigns.find((c) => c.id === sub.campaign_id);
-              const editor = db.profiles.find((p) => p.id === sub.editor_id);
-              const sla = getPostDeadlineStatus(sub);
+          // Calculate 30-day tracking window progress bar
+          const windowDays = camp?.view_tracking_window_days || 30;
+          const elapsedDays = sub.posted_at
+            ? Math.min(
+                windowDays,
+                Math.max(
+                  1,
+                  Math.round(
+                    (Date.now() - new Date(sub.posted_at).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )
+                )
+              )
+            : 0;
+          const windowPct = Math.min(
+            100,
+            Math.round((elapsedDays / windowDays) * 100)
+          );
 
-              return (
-                <div
-                  key={sub.id}
-                  className="rounded-2xl border border-white/10 bg-surface p-5 space-y-4"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <SubmissionStatusChip status={sub.status} />
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 font-mono text-xs font-bold ${
-                        sla.state === 'overdue'
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      }`}
-                    >
-                      {sla.label}
-                    </span>
-                  </div>
+          return (
+            <div
+              key={sub.id}
+              className="card-sticker p-6 grid grid-cols-1 gap-6 lg:grid-cols-12"
+            >
+              {/* Left 4 Cols: Clean Master Video */}
+              <div className="lg:col-span-4">
+                <ProtectedVideoPlayer
+                  submissionId={sub.id}
+                  editorUsername={editor?.username || 'editor'}
+                  status={sub.status}
+                  fileName={sub.file_name}
+                  durationSec={sub.duration_sec}
+                  previewVideoUrl={sub.preview_video_url}
+                  externalLink={sub.external_link}
+                  aspectRatio={camp?.aspect_ratio || '9:16'}
+                />
+              </div>
 
+              {/* Right 8 Cols: Post URL Form + View Snapshots */}
+              <div className="lg:col-span-8 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink pb-3">
                   <div>
-                    <h3 className="text-base font-bold text-white">{sub.file_name}</h3>
-                    <p className="text-xs text-zinc-400">
-                      Editor: <span className="text-zinc-200">@{editor?.username}</span> · Campaign:{' '}
-                      <span className="text-zinc-200">{camp?.title}</span>
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setPostUrlTargetId(postUrlTargetId === sub.id ? null : sub.id)
-                      }
-                      className="rounded-xl bg-tally px-3.5 py-2 text-xs font-extrabold text-zinc-950 hover:bg-tally-bright"
-                    >
-                      Submit Live Post URL + Proof
-                    </button>
-
-                    {!sub.missed_post_deadline && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          flagOverduePostDeadline(sub.id);
-                          setToastMsg(
-                            `Flagged missed 72h deadline on ${sub.file_name}: Editor and Admin notified, Account Holder profile flagged.`
-                          );
-                        }}
-                        className="rounded-xl border border-red-500/35 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/20"
-                      >
-                        Simulate 72h Deadline Miss
-                      </button>
-                    )}
-                  </div>
-
-                  {postUrlTargetId === sub.id && (
-                    <form
-                      onSubmit={(e) => handlePostUrlSubmit(e, sub.id)}
-                      className="rounded-xl border border-tally/40 bg-elevated p-4 space-y-3"
-                    >
-                      <div>
-                        <label className="block text-xs font-semibold text-zinc-300">
-                          Live Post URL (TikTok, Reels, or Shorts)
-                        </label>
-                        <input
-                          type="url"
-                          required
-                          value={postUrlInput}
-                          onChange={(e) => setPostUrlInput(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-zinc-300">
-                            Platform
-                          </label>
-                          <select
-                            value={postPlatformInput}
-                            onChange={(e) =>
-                              setPostPlatformInput(e.target.value as PlatformId)
-                            }
-                            className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 text-xs text-white"
-                          >
-                            <option value="tiktok">TikTok</option>
-                            <option value="ig_reels">IG Reels</option>
-                            <option value="youtube_shorts">YouTube Shorts</option>
-                            <option value="fb_reels">FB Reels</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-zinc-300">
-                            Current Views
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={initialViewsInput}
-                            onChange={(e) => setInitialViewsInput(Number(e.target.value))}
-                            className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-zinc-300">
-                          Screenshot Proof URL
-                        </label>
-                        <input
-                          type="url"
-                          required
-                          value={initialProofInput}
-                          onChange={(e) => setInitialProofInput(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="w-full rounded-lg bg-tally py-2 text-xs font-extrabold text-zinc-950"
-                      >
-                        Confirm Live Post &amp; Start 30-Day View Tracking
-                      </button>
-                    </form>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* SECTION B: POSTED CLIPS + 7-DAY VIEW SNAPSHOT TRACKER */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-tally-bright" />
-          2. Posted Clips &amp; Weekly View Snapshots ({postedClips.length})
-        </h2>
-
-        <div className="space-y-4">
-          {postedClips.map((sub) => {
-            const camp = db.campaigns.find((c) => c.id === sub.campaign_id);
-            const editor = db.profiles.find((p) => p.id === sub.editor_id);
-            const snapshots = db.view_snapshots.filter((sn) => sn.submission_id === sub.id);
-            const reminder = getViewUpdateReminderStatus(
-              sub,
-              db.settings.view_update_interval_days
-            );
-            const budget = camp
-              ? calculateCampaignBudgetSummary(camp, db.submissions)
-              : null;
-
-            return (
-              <div
-                key={sub.id}
-                className="rounded-2xl border border-white/10 bg-surface p-5 space-y-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <SubmissionStatusChip status={sub.status} />
-                    {sub.posted_platform && (
-                      <PlatformBadge platform={sub.posted_platform} />
-                    )}
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 font-mono text-[11px] font-semibold ${
-                        reminder.isDue
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/35'
-                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                      }`}
-                    >
-                      {reminder.label}
-                    </span>
-                  </div>
-
-                  {sub.posted_url && (
-                    <a
-                      href={sub.posted_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 font-mono text-xs text-tally-bright hover:underline"
-                    >
-                      {sub.posted_url} <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 sm:items-center">
-                  <div className="sm:col-span-5">
-                    <h3 className="text-base font-bold text-white">{sub.file_name}</h3>
-                    <p className="text-xs text-zinc-400">
-                      Editor: <span className="text-zinc-200">@{editor?.username}</span> ·{' '}
+                    <span className="text-xs font-extrabold uppercase text-forest">
                       {camp?.title}
+                    </span>
+                    <h2 className="font-display text-2xl text-ink">
+                      {sub.file_name} · Editor @{editor?.username}
+                    </h2>
+                  </div>
+                  <SubmissionStatusChip status={sub.status} />
+                </div>
+
+                {/* Metrics Strip */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-btn border-2 border-ink bg-mint p-3">
+                    <span className="text-xs font-bold text-muted">
+                      Locked Rate / 1K
+                    </span>
+                    <p className="font-display text-xl text-ink tabular-nums">
+                      {formatMoneyCents(
+                        sub.locked_rate_per_1k_cents ??
+                          camp?.rate_per_1k_cents ??
+                          0,
+                        camp?.currency || 'USD'
+                      )}
                     </p>
                   </div>
-
-                  <div className="sm:col-span-4 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-elevated p-3 text-center">
-                    <div>
-                      <span className="block text-[10px] uppercase text-zinc-400">
-                        Counted Views
-                      </span>
-                      <span className="font-mono text-sm font-extrabold text-white">
-                        {sub.counted_views.toLocaleString()}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] uppercase text-zinc-400">
-                        Accrued Payout
-                      </span>
-                      <span className="font-mono text-sm font-extrabold text-emerald-300">
-                        {formatMoneyCents(sub.net_earnings_cents, camp?.currency || 'USD')}
-                      </span>
-                    </div>
+                  <div className="rounded-btn border-2 border-ink bg-mint p-3">
+                    <span className="text-xs font-bold text-muted">
+                      Counted Views
+                    </span>
+                    <p className="font-display text-xl text-ink tabular-nums">
+                      {sub.counted_views.toLocaleString()}
+                    </p>
                   </div>
-
-                  <div className="sm:col-span-3 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSnapshotTargetId(snapshotTargetId === sub.id ? null : sub.id);
-                        setNewViewsInput(sub.counted_views + 8500);
-                      }}
-                      className="w-full sm:w-auto rounded-xl bg-tally px-4 py-2.5 text-xs font-extrabold text-zinc-950 hover:bg-tally-bright"
-                    >
-                      + Log View Snapshot
-                    </button>
+                  <div className="rounded-btn border-2 border-ink bg-sprout p-3">
+                    <span className="text-xs font-extrabold text-ink">
+                      Editor Earnings
+                    </span>
+                    <p className="font-display text-xl text-ink tabular-nums">
+                      {formatMoneyCents(
+                        sub.net_earnings_cents,
+                        camp?.currency || 'USD'
+                      )}
+                    </p>
                   </div>
                 </div>
 
-                {/* Inline New View Snapshot Form */}
-                {snapshotTargetId === sub.id && (
-                  <form
-                    onSubmit={(e) => handleAddSnapshotSubmit(e, sub.id)}
-                    className="rounded-xl border border-tally/40 bg-elevated p-4 space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold uppercase text-tally-bright">
-                        Record Verified View Snapshot (Remaining Campaign Budget:{' '}
-                        {formatMoneyCents(
-                          budget?.remainingBudgetCents || 0,
-                          camp?.currency || 'USD'
-                        )}
-                        )
-                      </h4>
+                {/* Case A: Clip is selected and needs Post URL within 72h */}
+                {!sub.posted_url ? (
+                  <div className="rounded-card border-2 border-ink bg-mint p-5 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-extrabold text-ink">
+                        Step 1: Post this clip on your page &amp; add the link
+                      </span>
+                      <span
+                        className={`chip-sticker ${
+                          deadlineInfo.state === 'overdue'
+                            ? 'bg-coral text-ink'
+                            : 'bg-sun text-ink'
+                        }`}
+                      >
+                        <Clock weight="bold" className="h-3.5 w-3.5" />
+                        <span>{deadlineInfo.label}</span>
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-zinc-300">
-                          Current Verified Views
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor={`post-url-${sub.id}`}
+                          className="mb-1 block text-xs font-extrabold text-ink"
+                        >
+                          Paste the link where you posted it
                         </label>
                         <input
-                          type="number"
-                          required
-                          min={0}
-                          value={newViewsInput}
-                          onChange={(e) => setNewViewsInput(Number(e.target.value))}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-zinc-300">
-                          Screenshot Proof URL
-                        </label>
-                        <input
+                          id={`post-url-${sub.id}`}
                           type="url"
-                          required
-                          value={newProofUrlInput}
-                          onChange={(e) => setNewProofUrlInput(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
+                          value={
+                            postUrlMap[sub.id] ??
+                            'https://www.tiktok.com/@apexclipspage/video/7409988776655'
+                          }
+                          onChange={(e) =>
+                            setPostUrlMap((prev) => ({
+                              ...prev,
+                              [sub.id]: e.target.value,
+                            }))
+                          }
+                          className="input-sticker"
                         />
                       </div>
+
                       <div>
-                        <label className="block text-xs font-semibold text-zinc-300">
-                          Snapshot Note
+                        <label
+                          htmlFor={`init-views-${sub.id}`}
+                          className="mb-1 block text-xs font-extrabold text-ink"
+                        >
+                          Current views
                         </label>
                         <input
-                          type="text"
-                          value={newSnapshotNote}
-                          onChange={(e) => setNewSnapshotNote(e.target.value)}
-                          className="mt-1 w-full rounded-lg border border-white/10 bg-inset px-3 py-2 text-xs text-white"
+                          id={`init-views-${sub.id}`}
+                          type="number"
+                          value={initViewsMap[sub.id] ?? 1200}
+                          onChange={(e) =>
+                            setInitViewsMap((prev) => ({
+                              ...prev,
+                              [sub.id]: Number(e.target.value),
+                            }))
+                          }
+                          className="input-sticker tabular-nums"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor={`init-proof-${sub.id}`}
+                        className="mb-1 block text-xs font-extrabold text-ink"
+                      >
+                        Screenshot proof URL
+                      </label>
+                      <input
+                        id={`init-proof-${sub.id}`}
+                        type="url"
+                        value={
+                          initProofMap[sub.id] ??
+                          'https://storage.whap.app/proofs/initial-post-screenshot.png'
+                        }
+                        onChange={(e) =>
+                          setInitProofMap((prev) => ({
+                            ...prev,
+                            [sub.id]: e.target.value,
+                          }))
+                        }
+                        className="input-sticker"
+                      />
                     </div>
 
                     <button
-                      type="submit"
-                      className="rounded-lg bg-tally px-4 py-2 text-xs font-extrabold text-zinc-950"
+                      type="button"
+                      onClick={() => handleSavePostUrl(sub.id)}
+                      className="btn-sticker btn-primary text-xs"
                     >
-                      Save Snapshot &amp; Recalculate Earnings
+                      <Broadcast weight="bold" className="h-4 w-4" />
+                      <span>Save Post URL &amp; Start View Tracking</span>
                     </button>
-                  </form>
-                )}
-
-                {/* Existing Snapshots List */}
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {snapshots.map((sn) => (
-                    <div
-                      key={sn.id}
-                      className="flex items-center gap-2 rounded-lg border border-white/10 bg-inset px-3 py-1.5 text-xs"
-                    >
-                      <span className="font-mono font-bold text-white">
-                        {sn.views.toLocaleString()} views
+                  </div>
+                ) : (
+                  /* Case B: Clip is Posted Live -> Show Post Link, 30-day Window Bar & 7-day Snapshot Updater */
+                  <div className="space-y-4">
+                    <div className="rounded-btn border-2 border-ink bg-mint p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="font-extrabold text-ink">
+                        Post URL:{' '}
+                        <a
+                          href={sub.posted_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-forest underline"
+                        >
+                          {sub.posted_url}
+                        </a>
                       </span>
-                      <span className="text-[11px] text-zinc-400">
-                        ({new Date(sn.created_at).toLocaleDateString()})
-                      </span>
-                      <a
-                        href={sn.proof_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] text-tally-bright hover:underline"
+                      <span
+                        className={`chip-sticker ${
+                          reminderInfo.isDue
+                            ? 'bg-sun text-ink'
+                            : 'bg-sprout text-ink'
+                        }`}
                       >
-                        Proof
-                      </a>
+                        {reminderInfo.label}
+                      </span>
                     </div>
-                  ))}
-                </div>
+
+                    {/* 30-Day View Tracking Window Progress Bar (12px tall, ink border, sprout fill) */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-extrabold text-ink">
+                        <span>{windowDays}-day view tracking window</span>
+                        <span className="tabular-nums">
+                          Day {elapsedDays} of {windowDays}
+                        </span>
+                      </div>
+                      <div className="progress-sticker">
+                        <div
+                          className="progress-sticker-fill"
+                          style={{ width: `${windowPct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Log New 7-Day View Snapshot */}
+                    <div className="rounded-card border-2 border-ink bg-mint p-4 space-y-3">
+                      <h3 className="text-xs font-extrabold uppercase text-ink">
+                        Log 7-Day View Update + Screenshot Proof
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label
+                            htmlFor={`snap-views-${sub.id}`}
+                            className="mb-1 block text-xs font-extrabold text-ink"
+                          >
+                            Updated view count
+                          </label>
+                          <input
+                            id={`snap-views-${sub.id}`}
+                            type="number"
+                            value={
+                              snapViewsMap[sub.id] ?? sub.counted_views + 8500
+                            }
+                            onChange={(e) =>
+                              setSnapViewsMap((prev) => ({
+                                ...prev,
+                                [sub.id]: Number(e.target.value),
+                              }))
+                            }
+                            className="input-sticker tabular-nums"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label
+                            htmlFor={`snap-proof-${sub.id}`}
+                            className="mb-1 block text-xs font-extrabold text-ink"
+                          >
+                            Screenshot proof link
+                          </label>
+                          <input
+                            id={`snap-proof-${sub.id}`}
+                            type="url"
+                            value={
+                              snapProofMap[sub.id] ??
+                              'https://storage.whap.app/proofs/day14-analytics-proof.png'
+                            }
+                            onChange={(e) =>
+                              setSnapProofMap((prev) => ({
+                                ...prev,
+                                [sub.id]: e.target.value,
+                              }))
+                            }
+                            className="input-sticker"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleAddSnapshot(sub.id, sub.counted_views)
+                        }
+                        className="btn-sticker btn-primary py-2 px-4 text-xs"
+                      >
+                        <PlusCircle weight="bold" className="h-4 w-4" />
+                        <span>Save View Snapshot</span>
+                      </button>
+                    </div>
+
+                    {/* View Snapshots History */}
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-extrabold uppercase text-ink">
+                        View Snapshots ({snapshots.length})
+                      </h3>
+                      <div className="space-y-1.5">
+                        {snapshots.map((snap) => (
+                          <div
+                            key={snap.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-btn border-2 border-ink bg-paper px-3.5 py-2.5 text-xs tabular-nums"
+                          >
+                            <div>
+                              <span className="font-extrabold text-ink">
+                                {snap.views.toLocaleString()} views
+                              </span>
+                              <span className="ml-2 font-bold text-muted">
+                                ({new Date(snap.created_at).toLocaleDateString()} ·{' '}
+                                {snap.source})
+                              </span>
+                            </div>
+                            <a
+                              href={snap.proof_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-extrabold text-forest underline"
+                            >
+                              <span>Proof</span>
+                              <ArrowSquareOut weight="bold" className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

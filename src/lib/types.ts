@@ -4,6 +4,7 @@ export type ActiveRole = 'editor' | 'account_holder' | 'admin';
 export type CurrencyCode = 'USD' | 'PHP';
 
 export type PlatformId = 'tiktok' | 'ig_reels' | 'youtube_shorts' | 'fb_reels';
+export type PlatformType = PlatformId;
 
 export type CampaignStatus = 'draft' | 'open' | 'closed' | 'completed';
 
@@ -20,7 +21,8 @@ export type PayoutMethodType = 'gcash' | 'paypal' | 'bank';
 
 export type DisputeStatus = 'open' | 'resolved_upheld' | 'resolved_overturned';
 
-export type PayoutRequestStatus = 'pending' | 'paid' | 'rejected';
+export type PayoutRequestStatus = 'pending' | 'paid' | 'rejected' | 'requested';
+export type PayoutStatus = PayoutRequestStatus;
 
 export type LedgerEntryType = 'earning' | 'payout' | 'adjustment';
 
@@ -45,6 +47,7 @@ export interface PayoutMethodDetails {
   bank_name?: string;
   bank_account_number?: string;
   bank_account_name?: string;
+  bank_account_holder?: string;
 }
 
 export interface Profile {

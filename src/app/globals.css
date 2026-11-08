@@ -3,38 +3,216 @@
 @tailwind utilities;
 
 :root {
-  --bg-canvas: #09090b;
-  --bg-surface: #111318;
-  --bg-elevated: #181b22;
-  --bg-inset: #060709;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-crimson: #ef4444;
+  --paper: #FFFFFF;
+  --mint: #EEF9F1;
+  --sprout: #3DDC84;
+  --forest: #0F7D43;
+  --ink: #13261B;
+  --muted: #5B6B61;
+  --sun: #FFD23F;
+  --sky: #8ED1FC;
+  --coral: #FF7A6B;
 }
 
 body {
-  background-color: var(--bg-canvas);
-  color: #f4f4f6;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
 
-.font-mono {
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display), cursive;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Subtle custom scrollbars for dark studio feel */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Sticker Card: 2px solid ink, 20px radius, 4px 4px 0 ink shadow */
+.card-sticker {
+  background-color: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: 4px 4px 0 var(--ink);
 }
-::-webkit-scrollbar-track {
-  background: #09090b;
+
+.card-sticker-mint {
+  background-color: var(--mint);
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: 4px 4px 0 var(--ink);
 }
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 3px;
+
+/* Sticker Buttons: min-height 48px, 2px solid ink, 12px radius, 3px 3px 0 ink shadow, Gabarito 700 */
+.btn-sticker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.625rem 1.25rem;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition:
+    transform 180ms cubic-bezier(.34, 1.56, .64, 1),
+    box-shadow 180ms cubic-bezier(.34, 1.56, .64, 1),
+    background-color 150ms ease;
+  cursor: pointer;
+  user-select: none;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+
+@media (hover: hover) {
+  .btn-sticker:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+}
+
+.btn-sticker:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn-sticker:focus-visible {
+  outline: 3px solid var(--sprout);
+  outline-offset: 2px;
+}
+
+.btn-sticker:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--sprout);
+  color: var(--ink);
+}
+
+.btn-secondary {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--mint);
+}
+
+.btn-danger {
+  background-color: var(--coral);
+  color: var(--ink);
+}
+
+.btn-sun {
+  background-color: var(--sun);
+  color: var(--ink);
+}
+
+/* Sticker Inputs: white, 2px ink border, 12px radius, min-height 48px, focus = forest border + 3px sprout outline */
+.input-sticker {
+  width: 100%;
+  min-height: 48px;
+  background-color: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 0.625rem 0.875rem;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink);
+  transition: border-color 150ms ease, outline 150ms ease;
+}
+
+.input-sticker::placeholder {
+  color: var(--muted);
+}
+
+.input-sticker:focus,
+.input-sticker:focus-visible {
+  border-color: var(--forest);
+  outline: 3px solid var(--sprout);
+  outline-offset: 0px;
+}
+
+/* Status Chips: pill shape, 2px ink border, icon + label */
+.chip-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-family: var(--font-body), sans-serif;
+  font-weight: 800;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Progress Bar: 12px tall, 2px ink border, sprout fill */
+.progress-sticker {
+  height: 12px;
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: 9999px;
+  background-color: var(--paper);
+  overflow: hidden;
+}
+
+.progress-sticker-fill {
+  height: 100%;
+  background-color: var(--sprout);
+  transition: width 220ms cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Confetti Burst Keyframes */
+@keyframes confetti-pop {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx, 24px), var(--ty, -36px)) scale(1.1) rotate(var(--rot, 140deg));
+  }
+}
+
+.confetti-piece {
+  animation: confetti-pop 650ms cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn-sticker:hover:not(:disabled),
+  .btn-sticker:active:not(:disabled) {
+    transform: none !important;
+  }
 }

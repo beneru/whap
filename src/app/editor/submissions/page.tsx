@@ -3,465 +3,398 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  AlertTriangle,
-  CheckCircle2,
-  ExternalLink,
+  ArrowsClockwise,
+  ArrowSquareOut,
+  CheckCircle,
   Flag,
-  RefreshCw,
-  UploadCloud,
-} from 'lucide-react';
+  UploadSimple,
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
-import { formatMoneyCents, getPostDeadlineStatus } from '@/lib/payout-math';
-import { DisputeStatusChip, SubmissionStatusChip } from '@/components/StatusChip';
+import { formatMoneyCents } from '@/lib/payout-math';
+import { SubmissionStatusChip } from '@/components/StatusChip';
 import { ProtectedVideoPlayer } from '@/components/ProtectedVideoPlayer';
-import { SubmissionStatus } from '@/lib/types';
+import { ClappyMascot } from '@/components/ClappyMascot';
 
 export default function EditorSubmissionsPage() {
-  const { db, currentUser, openAuthModal, createSubmission, openDispute } = useWhap();
+  const { db, currentUser, resubmitClip, openViewDispute } = useWhap();
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | SubmissionStatus>('ALL');
-  const [resubmitTargetId, setResubmitTargetId] = useState<string | null>(null);
-  const [resubmitLink, setResubmitLink] = useState('');
-  const [resubmitNotes, setResubmitNotes] = useState('');
+  const editorId = currentUser?.id || 'editor-1';
+  const mySubmissions = db.submissions.filter((s) => s.editor_id === editorId);
 
-  const [disputeTargetSnapshotId, setDisputeTargetSnapshotId] = useState<string | null>(null);
-  const [disputeSubmissionId, setDisputeSubmissionId] = useState<string | null>(null);
-  const [disputeClaimedViews, setDisputeClaimedViews] = useState(25000);
-  const [disputeReason, setDisputeReason] = useState('');
-  const [disputeEvidenceUrl, setDisputeEvidenceUrl] = useState(
-    'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&auto=format&fit=crop&q=80'
+  const [resubmitNotesMap, setResubmitNotesMap] = useState<Record<string, string>>(
+    {}
   );
-  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [disputeSnapId, setDisputeSnapId] = useState<string | null>(null);
+  const [claimedViews, setClaimedViews] = useState<number>(26500);
+  const [disputeReason, setDisputeReason] = useState<string>(
+    'Live TikTok page shows 26.5K views right now.'
+  );
+  const [disputeProofUrl, setDisputeProofUrl] = useState<string>(
+    'https://storage.whap.app/proofs/editor-live-count.png'
+  );
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!currentUser) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center space-y-3">
-        <h1 className="text-xl font-bold text-white">My Submissions</h1>
-        <button
-          type="button"
-          onClick={() => openAuthModal('/editor/submissions')}
-          className="rounded-xl bg-tally px-4 py-2 text-xs font-bold text-zinc-950"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
-
-  const mySubs = db.submissions
-    .filter((s) => s.editor_id === currentUser.id)
-    .filter((s) => (statusFilter === 'ALL' ? true : s.status === statusFilter));
-
-  const handleResubmit = (e: React.FormEvent, subId: string, campaignId: string) => {
-    e.preventDefault();
+  const handleResubmit = (submissionId: string, oldFileName: string) => {
     setErrorMsg(null);
+    setToastMsg(null);
     try {
-      createSubmission({
-        campaign_id: campaignId,
-        source_type: resubmitLink.trim() ? 'link' : 'upload',
-        storage_path: resubmitLink.trim() ? null : `${currentUser.id}/${campaignId}/revised-v2.mp4`,
-        external_link: resubmitLink.trim() || null,
-        file_name: `revised-${Date.now()}.mp4`,
-        notes: resubmitNotes || 'Revised clip addressing review feedback.',
-        resubmit_submission_id: subId,
+      const cleanBase = oldFileName.replace(/\.mp4$/i, '');
+      resubmitClip({
+        submission_id: submissionId,
+        file_name: `${cleanBase}-v2.mp4`,
+        notes:
+          resubmitNotesMap[submissionId] ||
+          'Updated first 2 seconds and tightened the audio transitions.',
       });
-      setResubmitTargetId(null);
-      setResubmitLink('');
-      setResubmitNotes('');
-      setFeedbackMsg('Revised clip resubmitted to the Account Holder review queue!');
+      setToastMsg('Updated cut sent! The page owner was notified.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
   };
 
-  const handleOpenDisputeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!disputeTargetSnapshotId || !disputeSubmissionId) return;
+  const handleOpenDispute = (submissionId: string, snapshotId: string) => {
     setErrorMsg(null);
+    setToastMsg(null);
     try {
-      openDispute({
-        snapshot_id: disputeTargetSnapshotId,
-        submission_id: disputeSubmissionId,
+      openViewDispute({
+        submission_id: submissionId,
+        snapshot_id: snapshotId,
+        claimed_views: Number(claimedViews),
         reason: disputeReason,
-        claimed_views: disputeClaimedViews,
-        evidence_url: disputeEvidenceUrl,
+        evidence_url: disputeProofUrl,
       });
-      setDisputeTargetSnapshotId(null);
-      setDisputeSubmissionId(null);
-      setDisputeReason('');
-      setFeedbackMsg('Dispute opened on snapshot! Admin and Account Holder have been notified.');
+      setDisputeSnapId(null);
+      setToastMsg('Dispute opened. An admin will check your screenshot.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <span className="font-mono text-xs uppercase tracking-widest text-tally-bright">
-            Clip Lifecycle · View Snapshots · Dispute Protection
-          </span>
-          <h1 className="mt-1 text-2xl font-extrabold text-white">My Submitted Clips</h1>
+          <h1 className="font-display text-3xl sm:text-4xl text-ink">
+            My Submitted Clips
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Every clip shows its status chip, post link, and view snapshots.
+          </p>
         </div>
-
-        {/* Status Filter Pills */}
-        <div className="flex flex-wrap gap-1.5">
-          {(
-            [
-              'ALL',
-              'submitted',
-              'revision_requested',
-              'resubmitted',
-              'selected',
-              'posted',
-              'paid',
-              'rejected',
-            ] as const
-          ).map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setStatusFilter(st)}
-              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                statusFilter === st
-                  ? 'bg-tally text-zinc-950'
-                  : 'border border-white/10 bg-surface text-zinc-400 hover:text-white'
-              }`}
-            >
-              {st === 'ALL' ? 'All Statuses' : st.replace('_', ' ')}
-            </button>
-          ))}
-        </div>
+        <Link href="/campaigns" className="btn-sticker btn-primary text-xs">
+          <UploadSimple weight="bold" className="h-4 w-4" />
+          <span>Submit Another Clip</span>
+        </Link>
       </div>
 
-      {feedbackMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3.5 text-xs text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          <span>{feedbackMsg}</span>
+      {toastMsg && (
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded-xl border border-red-500/35 bg-red-500/10 p-3.5 text-xs text-red-300">
-          {errorMsg}
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <span>{errorMsg}</span>
         </div>
       )}
 
-      {mySubs.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center">
-          <p className="text-sm font-bold text-white">No submissions in this filter</p>
-          <Link href="/campaigns" className="mt-2 inline-block text-xs text-tally-bright">
-            Browse Open Campaigns &rarr;
+      {mySubmissions.length === 0 ? (
+        <div className="card-sticker bg-mint p-10 flex flex-col items-center justify-center text-center space-y-3">
+          <ClappyMascot variant="empty" size={96} />
+          <h2 className="font-display text-2xl text-ink">No clips sent yet</h2>
+          <p className="max-w-sm text-sm text-muted">
+            Pick an open campaign and send your first vertical cut in under 2
+            minutes.
+          </p>
+          <Link href="/campaigns" className="btn-sticker btn-primary">
+            <span>Browse Campaigns</span>
           </Link>
         </div>
       ) : (
-        <div className="space-y-5">
-          {mySubs.map((sub) => {
+        <div className="space-y-6">
+          {mySubmissions.map((sub) => {
             const camp = db.campaigns.find((c) => c.id === sub.campaign_id);
-            const snapshots = db.view_snapshots.filter((sn) => sn.submission_id === sub.id);
-            const subDisputes = db.disputes.filter((d) => d.submission_id === sub.id);
-            const postSla = getPostDeadlineStatus(sub);
+            const snapshots = db.view_snapshots.filter(
+              (v) => v.submission_id === sub.id
+            );
 
             return (
               <div
                 key={sub.id}
-                className="grid grid-cols-1 gap-6 rounded-2xl border border-white/10 bg-surface p-5 lg:grid-cols-12"
+                className="card-sticker p-6 grid grid-cols-1 gap-6 lg:grid-cols-12"
               >
-                {/* Left 4 cols: Protected 9:16 Preview */}
+                {/* Left 4 Cols: Video Preview */}
                 <div className="lg:col-span-4">
                   <ProtectedVideoPlayer
-                    submission={sub}
-                    editorUsername={currentUser.username}
-                    currency={camp?.currency || 'USD'}
-                    compact
+                    submissionId={sub.id}
+                    editorUsername={currentUser?.username || 'kenjicuts'}
+                    status={sub.status}
+                    fileName={sub.file_name}
+                    durationSec={sub.duration_sec}
+                    previewVideoUrl={sub.preview_video_url}
+                    externalLink={sub.external_link}
+                    aspectRatio={camp?.aspect_ratio || '9:16'}
                   />
                 </div>
 
-                {/* Right 8 cols: Status, Notes, Post URL, View Snapshots & Dispute Trigger */}
-                <div className="lg:col-span-8 flex flex-col justify-between space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <SubmissionStatusChip status={sub.status} />
-                      <span className="font-mono text-xs text-zinc-400">
-                        Submitted {new Date(sub.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-
+                {/* Right 8 Cols: Status, Feedback, Post Link & View Snapshots */}
+                <div className="lg:col-span-8 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink pb-3">
                     <div>
                       <Link
                         href={`/campaigns/${sub.campaign_id}`}
-                        className="text-lg font-bold text-white hover:text-tally-bright"
+                        className="text-xs font-extrabold uppercase text-forest hover:underline"
                       >
                         {camp?.title}
                       </Link>
-                      <p className="font-mono text-xs text-zinc-400">
-                        File: {sub.file_name} · Caption: &ldquo;{sub.suggested_caption || 'N/A'}&rdquo;
+                      <h2 className="font-display text-2xl text-ink">
+                        {sub.file_name}
+                      </h2>
+                    </div>
+                    <SubmissionStatusChip status={sub.status} />
+                  </div>
+
+                  {/* Earnings + Locked Rate Box */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="rounded-btn border-2 border-ink bg-mint p-3">
+                      <span className="text-xs font-bold text-muted">
+                        Counted Views
+                      </span>
+                      <p className="font-display text-xl text-ink tabular-nums">
+                        {sub.counted_views.toLocaleString()}
                       </p>
                     </div>
-
-                    {/* Revision Note & Resubmit Trigger */}
-                    {sub.revision_note && (
-                      <div className="rounded-xl border border-amber-500/35 bg-amber-500/10 p-3.5 space-y-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
-                          Revision Note from Account Holder
-                        </span>
-                        <p className="text-xs text-amber-100">&ldquo;{sub.revision_note}&rdquo;</p>
-                        {sub.status === 'revision_requested' && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setResubmitTargetId(resubmitTargetId === sub.id ? null : sub.id)
-                            }
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-bold text-zinc-950"
-                          >
-                            <RefreshCw className="h-3.5 w-3.5" />
-                            Resubmit Revised Clip
-                          </button>
+                    <div className="rounded-btn border-2 border-ink bg-mint p-3">
+                      <span className="text-xs font-bold text-muted">
+                        Locked Rate / 1K
+                      </span>
+                      <p className="font-display text-xl text-ink tabular-nums">
+                        {formatMoneyCents(
+                          sub.locked_rate_per_1k_cents ??
+                            camp?.rate_per_1k_cents ??
+                            0,
+                          camp?.currency || 'USD'
                         )}
-                      </div>
-                    )}
+                      </p>
+                    </div>
+                    <div className="rounded-btn border-2 border-ink bg-sprout p-3">
+                      <span className="text-xs font-extrabold text-ink">
+                        Clip Earnings
+                      </span>
+                      <p className="font-display text-xl text-ink tabular-nums">
+                        {formatMoneyCents(
+                          sub.net_earnings_cents,
+                          camp?.currency || 'USD'
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-                    {/* Inline Resubmit Form */}
-                    {resubmitTargetId === sub.id && (
-                      <form
-                        onSubmit={(e) => handleResubmit(e, sub.id, sub.campaign_id)}
-                        className="rounded-xl border border-tally/40 bg-elevated p-4 space-y-3"
-                      >
-                        <h4 className="text-xs font-bold uppercase text-tally-bright">
-                          Upload or Link Revised V2 Clip
-                        </h4>
+                  {/* Revision Request Box */}
+                  {sub.status === 'revision_requested' && (
+                    <div className="rounded-card border-2 border-ink bg-sun p-4 space-y-3 shadow-btn">
+                      <span className="block text-xs font-extrabold uppercase text-ink">
+                        Changes Requested by Page Owner
+                      </span>
+                      <p className="text-sm font-bold text-ink">
+                        &ldquo;{sub.revision_note}&rdquo;
+                      </p>
+                      <div className="space-y-2 pt-1">
+                        <label
+                          htmlFor={`resubmit-note-${sub.id}`}
+                          className="block text-xs font-extrabold text-ink"
+                        >
+                          What did you update in the new cut?
+                        </label>
                         <input
-                          type="url"
-                          value={resubmitLink}
-                          onChange={(e) => setResubmitLink(e.target.value)}
-                          placeholder="Optional Drive/Dropbox URL (leave blank to upload revised MP4 to private bucket)"
-                          className="w-full rounded-lg border border-white/10 bg-inset px-3 py-2 text-xs text-white"
-                        />
-                        <input
+                          id={`resubmit-note-${sub.id}`}
                           type="text"
-                          required
-                          value={resubmitNotes}
-                          onChange={(e) => setResubmitNotes(e.target.value)}
-                          placeholder="What did you change in this revision? (e.g. Trimmed 1.8s intro breath)"
-                          className="w-full rounded-lg border border-white/10 bg-inset px-3 py-2 text-xs text-white"
+                          value={
+                            resubmitNotesMap[sub.id] ??
+                            'Moved headline hook to 0:00.5 and boosted voice level.'
+                          }
+                          onChange={(e) =>
+                            setResubmitNotesMap((prev) => ({
+                              ...prev,
+                              [sub.id]: e.target.value,
+                            }))
+                          }
+                          className="input-sticker"
                         />
                         <button
-                          type="submit"
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-tally px-4 py-2 text-xs font-bold text-zinc-950"
+                          type="button"
+                          onClick={() =>
+                            handleResubmit(
+                              sub.id,
+                              sub.file_name || 'clip-upload.mp4'
+                            )
+                          }
+                          className="btn-sticker btn-primary text-xs"
                         >
-                          <UploadCloud className="h-3.5 w-3.5" />
-                          Send Resubmission
+                          <ArrowsClockwise weight="bold" className="h-4 w-4" />
+                          <span>Upload &amp; Send Updated Cut</span>
                         </button>
-                      </form>
-                    )}
-
-                    {/* Rejection Reason */}
-                    {sub.status === 'rejected' && sub.rejection_reason && (
-                      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-200">
-                        <span className="font-bold">Rejection Reason:</span> {sub.rejection_reason}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Selected / Posted 72h Deadline & Live Post URL */}
-                    {['selected', 'posted', 'paid'].includes(sub.status) && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl border border-white/10 bg-elevated p-3.5 text-xs">
-                        <div>
-                          <span className="text-[10px] uppercase text-zinc-400">72h Post SLA</span>
-                          <p
-                            className={`mt-0.5 font-mono font-bold ${
-                              postSla.state === 'overdue'
-                                ? 'text-red-400'
-                                : 'text-emerald-300'
-                            }`}
-                          >
-                            {postSla.label}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase text-zinc-400">
-                            Counted Views
-                          </span>
-                          <p className="mt-0.5 font-mono text-sm font-extrabold text-white">
-                            {sub.counted_views.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase text-zinc-400">
-                            Accrued Earnings
-                          </span>
-                          <p className="mt-0.5 font-mono text-sm font-extrabold text-tally-bright">
-                            {formatMoneyCents(sub.net_earnings_cents, camp?.currency || 'USD')}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                  {/* Rejection Reason Box */}
+                  {sub.status === 'rejected' && sub.rejection_reason && (
+                    <div className="rounded-btn border-2 border-ink bg-coral p-4 text-sm font-bold text-ink">
+                      <strong>Reason not picked:</strong> {sub.rejection_reason}
+                    </div>
+                  )}
 
-                    {sub.posted_url && (
-                      <div className="flex items-center justify-between rounded-xl border border-tally/30 bg-tally/10 px-3.5 py-2.5 text-xs">
-                        <span className="font-mono text-zinc-200 truncate max-w-[75%]">
-                          Live Post: {sub.posted_url}
-                        </span>
+                  {/* Posted URL */}
+                  {sub.posted_url && (
+                    <div className="rounded-btn border-2 border-ink bg-mint p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="font-extrabold text-ink">
+                        Posted live at:{' '}
                         <a
                           href={sub.posted_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 font-bold text-tally-bright hover:underline"
+                          className="text-forest underline"
                         >
-                          Verify Live <ExternalLink className="h-3.5 w-3.5" />
+                          {sub.posted_url}
                         </a>
-                      </div>
-                    )}
+                      </span>
+                      <a
+                        href={sub.posted_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-extrabold text-forest"
+                      >
+                        <span>Open Post</span>
+                        <ArrowSquareOut weight="bold" className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  )}
 
-                    {/* View Snapshots History + Dispute Trigger */}
-                    {snapshots.length > 0 && (
-                      <div className="space-y-2 pt-1">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                          Verified View Snapshots ({snapshots.length})
-                        </h4>
-                        <div className="space-y-2">
-                          {snapshots.map((snap) => (
-                            <div
-                              key={snap.id}
-                              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-inset px-3.5 py-2.5 text-xs"
-                            >
-                              <div>
-                                <span className="font-mono font-bold text-white">
+                  {/* View Snapshots History + Dispute Trigger */}
+                  {snapshots.length > 0 && (
+                    <div className="space-y-2.5 border-t-2 border-ink pt-3">
+                      <h3 className="text-xs font-extrabold uppercase text-ink">
+                        Verified View Snapshots ({snapshots.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {snapshots.map((snap) => (
+                          <div
+                            key={snap.id}
+                            className="rounded-btn border-2 border-ink bg-paper p-3 text-xs space-y-2"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="space-x-2">
+                                <span className="font-extrabold text-ink tabular-nums">
                                   {snap.views.toLocaleString()} views
-                                </span>{' '}
-                                <span className="text-zinc-400">
-                                  ({snap.source} · {new Date(snap.created_at).toLocaleDateString()})
                                 </span>
-                                {snap.note && (
-                                  <p className="text-[11px] text-zinc-400">{snap.note}</p>
-                                )}
+                                <span className="text-muted font-bold">
+                                  ({new Date(snap.created_at).toLocaleDateString()} ·{' '}
+                                  {snap.source})
+                                </span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-3">
                                 <a
                                   href={snap.proof_url}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="inline-flex items-center gap-1 rounded border border-white/15 px-2 py-1 text-[11px] text-zinc-300 hover:text-white"
+                                  className="font-extrabold text-forest underline"
                                 >
-                                  Screenshot Proof <ExternalLink className="h-3 w-3" />
+                                  Screenshot Proof
                                 </a>
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setDisputeTargetSnapshotId(snap.id);
-                                    setDisputeSubmissionId(sub.id);
-                                    setDisputeClaimedViews(snap.views + 10000);
-                                  }}
-                                  className="inline-flex items-center gap-1 rounded border border-red-500/35 bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-500/20"
+                                  onClick={() =>
+                                    setDisputeSnapId(
+                                      disputeSnapId === snap.id ? null : snap.id
+                                    )
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-full border-2 border-ink bg-sun px-2.5 py-0.5 font-extrabold text-ink"
                                 >
-                                  <Flag className="h-3 w-3" />
-                                  Dispute Snapshot
+                                  <Flag weight="bold" className="h-3 w-3" />
+                                  <span>Dispute Count</span>
                                 </button>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Active or Resolved Disputes on this Submission */}
-                    {subDisputes.map((d) => (
-                      <div
-                        key={d.id}
-                        className="rounded-xl border border-white/10 bg-elevated p-3 text-xs space-y-1"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono font-bold text-white">
-                            Dispute on Snapshot {d.snapshot_id} (Claimed:{' '}
-                            {d.claimed_views.toLocaleString()} views)
-                          </span>
-                          <DisputeStatusChip status={d.status} />
-                        </div>
-                        <p className="text-zinc-300">Reason: {d.reason}</p>
-                        {d.resolution_note && (
-                          <p className="text-emerald-300 font-medium">
-                            Admin Resolution: {d.resolution_note}
-                          </p>
-                        )}
+                            {disputeSnapId === snap.id && (
+                              <div className="rounded-btn border-2 border-ink bg-mint p-3 space-y-3 mt-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label
+                                      htmlFor={`disp-views-${snap.id}`}
+                                      className="mb-1 block text-xs font-extrabold text-ink"
+                                    >
+                                      Actual view count on the post
+                                    </label>
+                                    <input
+                                      id={`disp-views-${snap.id}`}
+                                      type="number"
+                                      value={claimedViews}
+                                      onChange={(e) =>
+                                        setClaimedViews(Number(e.target.value))
+                                      }
+                                      className="input-sticker tabular-nums"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor={`disp-proof-${snap.id}`}
+                                      className="mb-1 block text-xs font-extrabold text-ink"
+                                    >
+                                      Your screenshot link
+                                    </label>
+                                    <input
+                                      id={`disp-proof-${snap.id}`}
+                                      type="url"
+                                      value={disputeProofUrl}
+                                      onChange={(e) =>
+                                        setDisputeProofUrl(e.target.value)
+                                      }
+                                      className="input-sticker"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label
+                                    htmlFor={`disp-reason-${snap.id}`}
+                                    className="mb-1 block text-xs font-extrabold text-ink"
+                                  >
+                                    What looks wrong with this snapshot?
+                                  </label>
+                                  <input
+                                    id={`disp-reason-${snap.id}`}
+                                    type="text"
+                                    value={disputeReason}
+                                    onChange={(e) =>
+                                      setDisputeReason(e.target.value)
+                                    }
+                                    className="input-sticker"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenDispute(sub.id, snap.id)}
+                                  className="btn-sticker btn-primary py-2 px-4 text-xs"
+                                >
+                                  <span>Send Dispute to Admin</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Open Dispute Modal */}
-      {disputeTargetSnapshotId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <form
-            onSubmit={handleOpenDisputeSubmit}
-            className="w-full max-w-md rounded-2xl border border-white/15 bg-elevated p-6 space-y-4 shadow-2xl"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white">
-                Open View Snapshot Dispute ({disputeTargetSnapshotId})
-              </h3>
-              <button
-                type="button"
-                onClick={() => setDisputeTargetSnapshotId(null)}
-                className="text-xs text-zinc-400 hover:text-white"
-              >
-                Cancel
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300">
-                Actual Views Shown on Live Post
-              </label>
-              <input
-                type="number"
-                required
-                min={0}
-                value={disputeClaimedViews}
-                onChange={(e) => setDisputeClaimedViews(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 font-mono text-sm text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300">
-                Discrepancy Explanation (min 10 chars)
-              </label>
-              <textarea
-                required
-                minLength={10}
-                rows={3}
-                value={disputeReason}
-                onChange={(e) => setDisputeReason(e.target.value)}
-                placeholder="Explain what the live TikTok/Reels view counter shows compared to the reported snapshot..."
-                className="mt-1 w-full rounded-xl border border-white/10 bg-inset p-3 text-xs text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300">
-                Screenshot Proof URL
-              </label>
-              <input
-                type="url"
-                value={disputeEvidenceUrl}
-                onChange={(e) => setDisputeEvidenceUrl(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-red-500 py-2.5 text-xs font-bold text-white hover:bg-red-400"
-            >
-              Submit Dispute to Admin Review
-            </button>
-          </form>
         </div>
       )}
     </div>

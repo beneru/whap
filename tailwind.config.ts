@@ -9,27 +9,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: '#09090B',
-        surface: '#111318',
-        elevated: '#181B22',
-        inset: '#060709',
-        tally: {
-          DEFAULT: '#10B981',
-          bright: '#34D399',
-          muted: 'rgba(16, 185, 129, 0.14)',
-        },
-        timecode: {
-          DEFAULT: '#F59E0B',
-          muted: 'rgba(245, 158, 11, 0.14)',
-        },
-        record: {
-          DEFAULT: '#EF4444',
-          muted: 'rgba(239, 68, 68, 0.14)',
-        },
+        paper: 'var(--paper)',
+        mint: 'var(--mint)',
+        sprout: 'var(--sprout)',
+        forest: 'var(--forest)',
+        ink: 'var(--ink)',
+        muted: 'var(--muted)',
+        sun: 'var(--sun)',
+        sky: 'var(--sky)',
+        coral: 'var(--coral)',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        display: ['var(--font-display)', 'cursive'],
+        sans: ['var(--font-body)', 'sans-serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+      },
+      borderRadius: {
+        btn: '12px',
+        card: '20px',
+      },
+      boxShadow: {
+        card: '4px 4px 0 var(--ink)',
+        btn: '3px 3px 0 var(--ink)',
+        'btn-hover': '4px 4px 0 var(--ink)',
+        none: '0 0 0 var(--ink)',
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(.34,1.56,.64,1)',
       },
     },
   },

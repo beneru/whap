@@ -1,26 +1,28 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
+import { Bagel_Fat_One, Gabarito } from 'next/font/google';
 import './globals.css';
 import { WhapProvider } from '@/context/WhapContext';
 import { Navbar } from '@/components/Navbar';
 import { AuthOnboardingModal } from '@/components/AuthOnboardingModal';
 
-const sans = Plus_Jakarta_Sans({
+const displayFont = Bagel_Fat_One({
+  weight: '400',
   subsets: ['latin'],
-  variable: '--font-sans',
+  variable: '--font-display',
   display: 'swap',
 });
 
-const mono = JetBrains_Mono({
+const bodyFont = Gabarito({
+  weight: ['400', '700', '800'],
   subsets: ['latin'],
-  variable: '--font-mono',
+  variable: '--font-body',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'whap · Clip Editing Marketplace for Page Owners & Video Editors',
+  title: 'whap · Cut Clips, Run Pages, Get Paid Per View',
   description:
-    'Connect social page owners (Account Holders) with short-form video editors. Watermarked review queues, locked per-1k view rates, and verified view-snapshot payouts.',
+    'Clip editing marketplace for social page owners and short-form video editors. Pick a campaign, send your cut, and get paid per view.',
 };
 
 export default function RootLayout({
@@ -29,12 +31,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} dark`}>
-      <body className="min-h-screen bg-canvas font-sans text-zinc-100 pb-20 md:pb-10">
+    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable}`}>
+      <body className="min-h-screen bg-paper font-body text-ink pb-24 md:pb-12">
         <WhapProvider>
           <Navbar />
           <AuthOnboardingModal />
-          <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+          <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
         </WhapProvider>
       </body>
     </html>

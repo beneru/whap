@@ -57,9 +57,11 @@ interface PendingAuthSession {
 interface WhapContextValue {
   db: WhapDatabase;
   currentUser: Profile | null;
+  activeRole: ActiveRole;
   pendingOnboarding: PendingAuthSession | null;
   emailOutbox: EmailLogEntry[];
   authModalOpen: boolean;
+  setAuthModalOpen: (open: boolean) => void;
   authRedirectTarget: string | null;
   openAuthModal: (redirectTarget?: string) => void;
   closeAuthModal: () => void;
@@ -67,12 +69,26 @@ interface WhapContextValue {
   signInWithGoogle: (email?: string, redirectTarget?: string) => Promise<{ needsOnboarding: boolean }>;
   signInWithMagicLink: (email: string, redirectTarget?: string) => Promise<{ needsOnboarding: boolean }>;
   completeOnboarding: (input: { display_name: string; role: 'editor' | 'account_holder' | 'both' }) => Profile;
+  completePasswordlessOnboarding: (input: {
+    email: string;
+    display_name: string;
+    role: 'editor' | 'account_holder' | 'both';
+    auth_provider: 'google' | 'magic_link';
+  }) => Profile;
   switchActiveRole: (role: ActiveRole) => void;
   switchDemoUser: (userId: string | null) => void;
+  switchDemoPersona: (userId: string | null) => void;
   signOut: () => void;
   updateProfile: (input: {
     display_name: string;
     username: string;
+    bio?: string;
+    niches: string[];
+    portfolio_url?: string;
+    sample_clip_urls: string[];
+  }) => void;
+  updateEditorProfile: (input: {
+    display_name: string;
     bio?: string;
     niches: string[];
     portfolio_url?: string;
@@ -87,7 +103,7 @@ interface WhapContextValue {
     source_type: 'upload' | 'link';
     storage_path?: string | null;
     external_link?: string | null;
-    preview_video_url?: string;
+    preview_video_url?: string | null;
     file_name?: string | null;
     file_size_bytes?: number | null;
     duration_sec?: number;
@@ -96,17 +112,30 @@ interface WhapContextValue {
     notes?: string;
     resubmit_submission_id?: string;
   }) => Submission;
+  resubmitClip: (input: {
+    submission_id: string;
+    file_name: string;
+    notes: string;
+  }) => Submission;
   reviewSubmission: (input: {
     submission_id: string;
-    decision: 'select' | 'request_revision' | 'reject';
+    decision?: 'select' | 'request_revision' | 'reject';
+    action?: 'select' | 'request_revision' | 'reject';
     note?: string;
   }) => Submission;
   flagOverduePostDeadline: (submissionId: string) => void;
+  triggerMissedDeadlineCheck: () => number;
   // Post URL, View Snapshots, Disputes
   submitPostUrl: (input: {
     submission_id: string;
     posted_url: string;
     posted_platform: PlatformId;
+    initial_views: number;
+    proof_url: string;
+  }) => Promise<Submission>;
+  submitPostUrlForClip: (input: {
+    submission_id: string;
+    post_url: string;
     initial_views: number;
     proof_url: string;
   }) => Promise<Submission>;
@@ -117,7 +146,19 @@ interface WhapContextValue {
     proof_url: string;
     note?: string;
   }) => Promise<ViewSnapshot>;
+  recordManualViewSnapshot: (input: {
+    submission_id: string;
+    views: number;
+    proof_url: string;
+  }) => Promise<ViewSnapshot>;
   openDispute: (input: {
+    snapshot_id: string;
+    submission_id: string;
+    reason: string;
+    claimed_views: number;
+    evidence_url?: string;
+  }) => Dispute;
+  openViewDispute: (input: {
     snapshot_id: string;
     submission_id: string;
     reason: string;
@@ -134,15 +175,25 @@ interface WhapContextValue {
   savePayoutMethod: (input: PayoutMethodDetails) => void;
   getUserAvailableBalanceCents: (userId: string, currency?: CurrencyCode) => number;
   getUserTotalEarnedCents: (userId: string, currency?: CurrencyCode) => number;
+  getEditorWalletSummary: (userId: string) => {
+    availableBalanceCents: number;
+    totalEarnedCents: number;
+    totalPaidCents: number;
+    pendingPayoutCents: number;
+    canRequestPayout: boolean;
+    needsPayoutSetup: boolean;
+  };
   requestPayout: (input: {
     amount_cents: number;
     currency: CurrencyCode;
     campaign_id?: string | null;
   }) => PayoutRequest;
   markPayoutPaid: (input: {
-    payout_request_id: string;
+    payout_request_id?: string;
+    payout_id?: string;
     reference_number: string;
     receipt_url?: string;
+    receipt_image_url?: string;
   }) => PayoutRequest;
   addAdminLedgerAdjustment: (input: {
     user_id: string;
@@ -157,6 +208,7 @@ interface WhapContextValue {
   markNotificationRead: (notificationId: string) => void;
   markAllNotificationsRead: () => void;
   resetDemoSeed: () => void;
+  resetToInitialSeed: () => void;
 }
 
 const WhapContext = createContext<WhapContextValue | null>(null);
@@ -473,7 +525,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     source_type: 'upload' | 'link';
     storage_path?: string | null;
     external_link?: string | null;
-    preview_video_url?: string;
+    preview_video_url?: string | null;
     file_name?: string | null;
     file_size_bytes?: number | null;
     duration_sec?: number;
@@ -553,7 +605,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       source_type: parsed.source_type,
       storage_path: parsed.storage_path || null,
       external_link: parsed.external_link || null,
-      preview_video_url: input.preview_video_url,
+      preview_video_url: input.preview_video_url || undefined,
       file_name:
         parsed.file_name ||
         (parsed.source_type === 'link' ? 'external-drive-clip.mp4' : 'uploaded-clip.mp4'),
@@ -640,10 +692,16 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
 
   const reviewSubmission = (input: {
     submission_id: string;
-    decision: 'select' | 'request_revision' | 'reject';
+    decision?: 'select' | 'request_revision' | 'reject';
+    action?: 'select' | 'request_revision' | 'reject';
     note?: string;
   }): Submission => {
-    const parsed = ReviewActionSchema.parse(input);
+    const resolvedDecision = input.decision || input.action || 'select';
+    const parsed = ReviewActionSchema.parse({
+      submission_id: input.submission_id,
+      decision: resolvedDecision,
+      note: input.note,
+    });
     const sub = db.submissions.find((s) => s.id === parsed.submission_id);
     if (!sub) throw new Error('Submission not found.');
     const campaign = db.campaigns.find((c) => c.id === sub.campaign_id);
@@ -717,8 +775,8 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         pushNotification(nextNotifications, prev.profiles, {
           userId: sub.editor_id,
           type: 'clip_selected',
-          title: `Your clip was SELECTED for "${campaign.title}"!`,
-          body: `Clean file unlocked and rate locked at ${formatMoneyCents(
+          title: `Your clip got picked for "${campaign.title}"!`,
+          body: `Clean file is ready and rate locked at ${formatMoneyCents(
             campaign.rate_per_1k_cents,
             campaign.currency
           )}/1k views${
@@ -1330,11 +1388,17 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
   };
 
   const markPayoutPaid = (input: {
-    payout_request_id: string;
+    payout_request_id?: string;
+    payout_id?: string;
     reference_number: string;
     receipt_url?: string;
+    receipt_image_url?: string;
   }): PayoutRequest => {
-    const parsed = MarkPayoutPaidSchema.parse(input);
+    const parsed = MarkPayoutPaidSchema.parse({
+      payout_request_id: input.payout_request_id || input.payout_id || '',
+      reference_number: input.reference_number,
+      receipt_url: input.receipt_url || input.receipt_image_url,
+    });
     const req = db.payout_requests.find((p) => p.id === parsed.payout_request_id);
     if (!req) throw new Error('Payout request not found.');
     if (req.status === 'paid') throw new Error('This payout request is already marked paid.');
@@ -1492,36 +1556,172 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const activeRole: ActiveRole = currentUser?.active_role || 'editor';
+
+  const completePasswordlessOnboarding = (input: {
+    email: string;
+    display_name: string;
+    role: 'editor' | 'account_holder' | 'both';
+    auth_provider: 'google' | 'magic_link';
+  }): Profile => {
+    setPendingOnboarding({
+      email: input.email,
+      provider: input.auth_provider,
+    });
+    const created = completeOnboarding({
+      display_name: input.display_name,
+      role: input.role,
+    });
+    setAuthModalOpen(false);
+    return created;
+  };
+
+  const updateEditorProfile = (input: {
+    display_name: string;
+    bio?: string;
+    niches: string[];
+    portfolio_url?: string;
+    sample_clip_urls: string[];
+  }) => {
+    updateProfile({
+      display_name: input.display_name,
+      username: currentUser?.username || 'editor',
+      bio: input.bio,
+      niches: input.niches,
+      portfolio_url: input.portfolio_url,
+      sample_clip_urls: input.sample_clip_urls,
+    });
+  };
+
+  const resubmitClip = (input: {
+    submission_id: string;
+    file_name: string;
+    notes: string;
+  }): Submission => {
+    const existing = db.submissions.find((s) => s.id === input.submission_id);
+    if (!existing) throw new Error('Submission not found.');
+    return createSubmission({
+      campaign_id: existing.campaign_id,
+      source_type: existing.source_type,
+      storage_path: existing.storage_path,
+      external_link: existing.external_link,
+      file_name: input.file_name,
+      file_size_bytes: existing.file_size_bytes,
+      duration_sec: existing.duration_sec,
+      suggested_caption: existing.suggested_caption,
+      hashtags: existing.hashtags,
+      notes: input.notes,
+      resubmit_submission_id: existing.id,
+    });
+  };
+
+  const triggerMissedDeadlineCheck = (): number => {
+    const nowMs = Date.now();
+    const overdue = db.submissions.filter(
+      (s) =>
+        s.status === 'selected' &&
+        !s.posted_url &&
+        s.post_deadline_at &&
+        new Date(s.post_deadline_at).getTime() < nowMs
+    );
+    for (const sub of overdue) {
+      flagOverduePostDeadline(sub.id);
+    }
+    return overdue.length;
+  };
+
+  const submitPostUrlForClip = (input: {
+    submission_id: string;
+    post_url: string;
+    initial_views: number;
+    proof_url: string;
+  }): Promise<Submission> => {
+    return submitPostUrl({
+      submission_id: input.submission_id,
+      posted_url: input.post_url,
+      posted_platform: 'tiktok',
+      initial_views: input.initial_views,
+      proof_url: input.proof_url,
+    });
+  };
+
+  const recordManualViewSnapshot = (input: {
+    submission_id: string;
+    views: number;
+    proof_url: string;
+  }): Promise<ViewSnapshot> => {
+    return addViewSnapshot({
+      submission_id: input.submission_id,
+      views: input.views,
+      source: 'manual',
+      proof_url: input.proof_url,
+    });
+  };
+
+  const getEditorWalletSummary = (userId: string) => {
+    const availableBalanceCents = getUserAvailableBalanceCents(userId, 'USD');
+    const totalEarnedCents = getUserTotalEarnedCents(userId, 'USD');
+    const totalPaidCents = db.payout_requests
+      .filter((p) => p.editor_id === userId && p.status === 'paid')
+      .reduce((s, p) => s + p.amount_cents, 0);
+    const pendingPayoutCents = db.payout_requests
+      .filter((p) => p.editor_id === userId && p.status === 'pending')
+      .reduce((s, p) => s + p.amount_cents, 0);
+    const profile = db.profiles.find((p) => p.id === userId);
+    const canRequestPayout = availableBalanceCents >= db.settings.min_payout_cents;
+    const needsPayoutSetup = totalEarnedCents > 0 && !profile?.payout_method_type;
+
+    return {
+      availableBalanceCents,
+      totalEarnedCents,
+      totalPaidCents,
+      pendingPayoutCents,
+      canRequestPayout,
+      needsPayoutSetup,
+    };
+  };
+
   return (
     <WhapContext.Provider
       value={{
         db,
         currentUser,
+        activeRole,
         pendingOnboarding,
         emailOutbox,
         authModalOpen,
+        setAuthModalOpen,
         authRedirectTarget,
         openAuthModal,
         closeAuthModal,
         signInWithGoogle,
         signInWithMagicLink,
         completeOnboarding,
+        completePasswordlessOnboarding,
         switchActiveRole,
         switchDemoUser,
+        switchDemoPersona: switchDemoUser,
         signOut,
         updateProfile,
+        updateEditorProfile,
         createCampaign,
         updateCampaign,
         createSubmission,
+        resubmitClip,
         reviewSubmission,
         flagOverduePostDeadline,
+        triggerMissedDeadlineCheck,
         submitPostUrl,
+        submitPostUrlForClip,
         addViewSnapshot,
+        recordManualViewSnapshot,
         openDispute,
+        openViewDispute: openDispute,
         resolveDispute,
         savePayoutMethod,
         getUserAvailableBalanceCents,
         getUserTotalEarnedCents,
+        getEditorWalletSummary,
         requestPayout,
         markPayoutPaid,
         addAdminLedgerAdjustment,
@@ -1530,6 +1730,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         markNotificationRead,
         markAllNotificationsRead,
         resetDemoSeed,
+        resetToInitialSeed: resetDemoSeed,
       }}
     >
       {children}

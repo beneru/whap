@@ -1,123 +1,178 @@
-import React from 'react';
-import { CampaignStatus, DisputeStatus, PayoutRequestStatus, PlatformId, SubmissionStatus } from '@/lib/types';
+'use client';
 
-const SUBMISSION_STATUS_META: Record<
+import React from 'react';
+import {
+  ArrowsClockwise,
+  Broadcast,
+  CheckCircle,
+  Clock,
+  Coins,
+  FilmSlate,
+  InstagramLogo,
+  LockKey,
+  NotePencil,
+  PaperPlaneTilt,
+  PlayCircle,
+  TiktokLogo,
+  WarningCircle,
+  XCircle,
+  YoutubeLogo,
+} from '@phosphor-icons/react';
+import {
+  CampaignStatus,
+  DisputeStatus,
+  PayoutStatus,
+  PlatformType,
   SubmissionStatus,
-  { label: string; bg: string; text: string; border: string; dot: string }
+} from '@/lib/types';
+
+/**
+ * Status chips: pill shape, 2px ink border, Phosphor bold icon + label.
+ * submitted = sky (#8ED1FC, ink text)
+ * revision_requested / resubmitted = sun (#FFD23F, ink text)
+ * selected = sprout (#3DDC84, ink text)
+ * posted = forest (#0F7D43, white text)
+ * paid = sprout (#3DDC84, ink text + coin icon)
+ * rejected = coral (#FF7A6B, ink text)
+ */
+const SUBMISSION_CONFIG: Record<
+  SubmissionStatus,
+  {
+    label: string;
+    classes: string;
+    Icon: React.ElementType;
+  }
 > = {
   submitted: {
-    label: 'Submitted · In Queue',
-    bg: 'bg-sky-500/10',
-    text: 'text-sky-300',
-    border: 'border-sky-500/25',
-    dot: 'bg-sky-400',
+    label: 'Submitted',
+    classes: 'bg-sky text-ink',
+    Icon: PaperPlaneTilt,
   },
   revision_requested: {
-    label: 'Revision Requested',
-    bg: 'bg-amber-500/15',
-    text: 'text-amber-300',
-    border: 'border-amber-500/30',
-    dot: 'bg-amber-400',
+    label: 'Needs Revision',
+    classes: 'bg-sun text-ink',
+    Icon: NotePencil,
   },
   resubmitted: {
-    label: 'Resubmitted · Ready',
-    bg: 'bg-indigo-500/15',
-    text: 'text-indigo-300',
-    border: 'border-indigo-500/30',
-    dot: 'bg-indigo-400',
+    label: 'Resubmitted',
+    classes: 'bg-sun text-ink',
+    Icon: ArrowsClockwise,
   },
   selected: {
-    label: 'Selected · Rate Locked',
-    bg: 'bg-emerald-500/15',
-    text: 'text-emerald-300',
-    border: 'border-emerald-500/35',
-    dot: 'bg-emerald-400',
+    label: 'Selected',
+    classes: 'bg-sprout text-ink',
+    Icon: CheckCircle,
   },
   posted: {
-    label: 'Posted · Tracking Views',
-    bg: 'bg-tally/15',
-    text: 'text-tally-bright',
-    border: 'border-tally/40',
-    dot: 'bg-tally-bright animate-pulse',
+    label: 'Posted Live',
+    classes: 'bg-forest text-paper',
+    Icon: Broadcast,
   },
   paid: {
-    label: 'Paid · Settled',
-    bg: 'bg-emerald-400/20',
-    text: 'text-emerald-200',
-    border: 'border-emerald-400/40',
-    dot: 'bg-emerald-300',
+    label: 'Paid',
+    classes: 'bg-sprout text-ink',
+    Icon: Coins,
   },
   rejected: {
     label: 'Rejected',
-    bg: 'bg-red-500/10',
-    text: 'text-red-300',
-    border: 'border-red-500/25',
-    dot: 'bg-red-400',
+    classes: 'bg-coral text-ink',
+    Icon: XCircle,
   },
 };
 
 export function SubmissionStatusChip({ status }: { status: SubmissionStatus }) {
-  const meta = SUBMISSION_STATUS_META[status] || SUBMISSION_STATUS_META.submitted;
+  const cfg = SUBMISSION_CONFIG[status] ?? SUBMISSION_CONFIG.submitted;
+  const Icon = cfg.Icon;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium tracking-tight ${meta.bg} ${meta.text} ${meta.border}`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-      {meta.label}
+    <span className={`chip-sticker ${cfg.classes}`}>
+      <Icon weight="bold" className="h-3.5 w-3.5 shrink-0" />
+      <span>{cfg.label}</span>
     </span>
   );
 }
+
+const CAMPAIGN_CONFIG: Record<
+  CampaignStatus,
+  { label: string; classes: string; Icon: React.ElementType }
+> = {
+  draft: {
+    label: 'Draft',
+    classes: 'bg-mint text-ink',
+    Icon: NotePencil,
+  },
+  open: {
+    label: 'Open',
+    classes: 'bg-sprout text-ink',
+    Icon: PlayCircle,
+  },
+  closed: {
+    label: 'Closed',
+    classes: 'bg-sun text-ink',
+    Icon: LockKey,
+  },
+  completed: {
+    label: 'Completed',
+    classes: 'bg-forest text-paper',
+    Icon: CheckCircle,
+  },
+};
 
 export function CampaignStatusChip({ status }: { status: CampaignStatus }) {
-  const styles: Record<CampaignStatus, string> = {
-    draft: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    open: 'bg-tally/15 text-tally-bright border-tally/35',
-    closed: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    completed: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  };
+  const cfg = CAMPAIGN_CONFIG[status] ?? CAMPAIGN_CONFIG.open;
+  const Icon = cfg.Icon;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${styles[status]}`}
-    >
-      {status === 'open' && <span className="h-1.5 w-1.5 rounded-full bg-tally-bright animate-ping" />}
-      {status}
+    <span className={`chip-sticker ${cfg.classes}`}>
+      <Icon weight="bold" className="h-3.5 w-3.5 shrink-0" />
+      <span>{cfg.label}</span>
     </span>
   );
 }
 
-export function PlatformBadge({ platform }: { platform: PlatformId }) {
-  const labels: Record<PlatformId, { name: string; color: string }> = {
-    tiktok: { name: 'TikTok', color: 'border-pink-500/30 bg-pink-500/10 text-pink-200' },
-    ig_reels: { name: 'IG Reels', color: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-200' },
-    youtube_shorts: { name: 'YT Shorts', color: 'border-red-500/30 bg-red-500/10 text-red-200' },
-    fb_reels: { name: 'FB Reels', color: 'border-blue-500/30 bg-blue-500/10 text-blue-200' },
+const PLATFORM_LABELS: Record<
+  PlatformType,
+  { label: string; Icon: React.ElementType }
+> = {
+  tiktok: { label: 'TikTok', Icon: TiktokLogo },
+  ig_reels: { label: 'IG Reels', Icon: InstagramLogo },
+  youtube_shorts: { label: 'Shorts', Icon: YoutubeLogo },
+  fb_reels: { label: 'FB Reels', Icon: FilmSlate },
+};
+
+export function PlatformBadge({ platform }: { platform: PlatformType }) {
+  const cfg = PLATFORM_LABELS[platform] ?? {
+    label: platform,
+    Icon: FilmSlate,
   };
-  const item = labels[platform] || { name: platform, color: 'border-zinc-700 bg-zinc-800 text-zinc-200' };
+  const Icon = cfg.Icon;
   return (
-    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${item.color}`}>
-      {item.name}
+    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-mint px-2.5 py-0.5 text-xs font-extrabold text-ink">
+      <Icon weight="bold" className="h-3.5 w-3.5 shrink-0 text-ink" />
+      <span>{cfg.label}</span>
     </span>
   );
 }
 
-export function PayoutStatusChip({ status }: { status: PayoutRequestStatus }) {
+export function PayoutStatusChip({ status }: { status: PayoutStatus }) {
   if (status === 'paid') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
-        Paid
+      <span className="chip-sticker bg-sprout text-ink">
+        <Coins weight="bold" className="h-3.5 w-3.5 shrink-0" />
+        <span>Paid</span>
       </span>
     );
   }
   if (status === 'rejected') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-500/35 bg-red-500/15 px-2.5 py-0.5 text-xs font-medium text-red-300">
-        Rejected
+      <span className="chip-sticker bg-coral text-ink">
+        <XCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
+        <span>Rejected</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/35 bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-300">
-      Pending Settlement
+    <span className="chip-sticker bg-sun text-ink">
+      <Clock weight="bold" className="h-3.5 w-3.5 shrink-0" />
+      <span>Requested</span>
     </span>
   );
 }
@@ -125,21 +180,24 @@ export function PayoutStatusChip({ status }: { status: PayoutRequestStatus }) {
 export function DisputeStatusChip({ status }: { status: DisputeStatus }) {
   if (status === 'open') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-500/35 bg-red-500/15 px-2.5 py-0.5 text-xs font-medium text-red-300">
-        Open Dispute
+      <span className="chip-sticker bg-sun text-ink">
+        <WarningCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
+        <span>Open Dispute</span>
       </span>
     );
   }
   if (status === 'resolved_overturned') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/35 bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
-        Resolved · Views Adjusted
+      <span className="chip-sticker bg-sprout text-ink">
+        <CheckCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
+        <span>Updated Views</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-zinc-600 bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300">
-      Resolved · Snapshot Upheld
+    <span className="chip-sticker bg-mint text-ink">
+      <CheckCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
+      <span>Kept Original</span>
     </span>
   );
 }

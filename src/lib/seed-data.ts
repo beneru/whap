@@ -329,7 +329,7 @@ export function createSeedDatabase(): WhapDatabase {
         file_name: 'ep43-pricing-myth.mp4',
         file_size_bytes: 38120000,
         duration_sec: 36,
-        suggested_caption: 'Stop charging hourly for high-leverage work.',
+        suggested_caption: 'Stop charging hourly for specialized systems work.',
         hashtags: ['#pricing', '#b2b', '#founders'],
         notes: 'Used kinetic yellow subtitles and whoosh transitions.',
         status: 'revision_requested',
@@ -391,7 +391,7 @@ export function createSeedDatabase(): WhapDatabase {
         created_at: isoDaysAgo(3),
         updated_at: isoHoursAgo(3),
       },
-      // 4. status: 'selected' (Within 72h post deadline window; unlocks clean file + locks rate; gives editor-2 her first $5.00 earning!)
+      // 4. status: 'selected' (Within 72h post deadline window; opens clean file + locks rate; gives editor-2 her first $5.00 earning!)
       {
         id: 'sub-4',
         campaign_id: 'camp-1',
@@ -826,7 +826,7 @@ export function createSeedDatabase(): WhapDatabase {
         id: 'notif-2',
         user_id: 'editor-2',
         type: 'clip_selected',
-        title: 'Your clip was SELECTED ($5.00 base fee unlocked)',
+        title: 'Your clip got picked! ($5.00 base fee added)',
         body: 'Marcus Vance selected ep42-hiring-mistakes-clean.mp4. Add your payout method to withdraw once you hit $10.00.',
         action_url: '/editor/payouts',
         email_sent: true,

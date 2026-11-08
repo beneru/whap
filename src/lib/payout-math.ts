@@ -69,6 +69,8 @@ export function calculateClipEarningsCents(input: ClipEarningsInput): ClipEarnin
   };
 }
 
+export const calculateSubmissionEarnings = calculateClipEarningsCents;
+
 /**
  * Returns the latest verified view count inside the campaign's tracking window.
  */

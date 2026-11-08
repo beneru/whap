@@ -2,103 +2,93 @@
 
 import React, { useState } from 'react';
 import {
-  CheckCircle2,
-  CreditCard,
-  ExternalLink,
-  Sparkles,
-  Wallet,
-} from 'lucide-react';
+  CheckCircle,
+  Coins,
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
 import { formatMoneyCents } from '@/lib/payout-math';
 import { PayoutStatusChip } from '@/components/StatusChip';
-import { CurrencyCode, PayoutMethodType } from '@/lib/types';
+import { PayoutMethodType } from '@/lib/types';
 
+/**
+ * Money Screen Rule:
+ * Same sticker-sheet style (2px ink borders, hard shadows, flat colors),
+ * but calm: no wiggle, no confetti, big clear numbers (Bagel Fat One >= 20px,
+ * Gabarito tabular-nums for ledger rows). Trust beats fun here.
+ */
 export default function EditorPayoutsPage() {
   const {
     db,
     currentUser,
-    openAuthModal,
+    getEditorWalletSummary,
     savePayoutMethod,
     requestPayout,
-    getUserAvailableBalanceCents,
-    getUserTotalEarnedCents,
   } = useWhap();
 
+  const editorId = currentUser?.id || 'editor-1';
+  const editor =
+    db.profiles.find((p) => p.id === editorId) || db.profiles[2];
+  const wallet = getEditorWalletSummary(editor.id);
+
   const [methodType, setMethodType] = useState<PayoutMethodType>(
-    currentUser?.payout_method_type || 'gcash'
+    editor.payout_method_type || 'gcash'
   );
   const [gcashNumber, setGcashNumber] = useState(
-    currentUser?.payout_method_details?.gcash_number || '09175501928'
+    editor.payout_method_details?.gcash_number || '09175550199'
   );
   const [gcashName, setGcashName] = useState(
-    currentUser?.payout_method_details?.gcash_name || currentUser?.display_name || ''
+    editor.payout_method_details?.gcash_name || editor.display_name
   );
   const [paypalEmail, setPaypalEmail] = useState(
-    currentUser?.payout_method_details?.paypal_email || currentUser?.email || ''
+    editor.payout_method_details?.paypal_email || editor.email
   );
   const [bankName, setBankName] = useState(
-    currentUser?.payout_method_details?.bank_name || 'BPI / UnionBank'
+    editor.payout_method_details?.bank_name || 'BPI'
   );
-  const [bankAccNumber, setBankAccNumber] = useState(
-    currentUser?.payout_method_details?.bank_account_number || '00192837465'
+  const [bankAccountNumber, setBankAccountNumber] = useState(
+    editor.payout_method_details?.bank_account_number || '0042918821'
   );
-  const [bankAccName, setBankAccName] = useState(
-    currentUser?.payout_method_details?.bank_account_name || currentUser?.display_name || ''
+  const [bankAccountHolder, setBankAccountHolder] = useState(
+    editor.payout_method_details?.bank_account_holder || editor.display_name
   );
 
-  const [payoutCurrency, setPayoutCurrency] = useState<CurrencyCode>('USD');
-  const [customAmountDollars, setCustomAmountDollars] = useState<string>('');
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [payoutAmountDollars, setPayoutAmountDollars] = useState(
+    Math.max(10, wallet.availableBalanceCents / 100).toFixed(2)
+  );
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!currentUser) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-surface p-8 text-center space-y-3">
-        <h1 className="text-xl font-bold text-white">Payouts &amp; Financial Ledger</h1>
-        <button
-          type="button"
-          onClick={() => openAuthModal('/editor/payouts')}
-          className="rounded-xl bg-tally px-4 py-2 text-xs font-bold text-zinc-950"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
+  const myPayoutRequests = db.payout_requests.filter(
+    (p) => p.editor_id === editor.id
+  );
+  const myLedger = db.ledger_entries.filter((l) => l.user_id === editor.id);
 
-  const availableUsdCents = getUserAvailableBalanceCents(currentUser.id, 'USD');
-  const availablePhpCents = getUserAvailableBalanceCents(currentUser.id, 'PHP');
-  const totalEarnedUsd = getUserTotalEarnedCents(currentUser.id, 'USD');
-  const totalEarnedPhp = getUserTotalEarnedCents(currentUser.id, 'PHP');
-  const hasAnyEarning = totalEarnedUsd > 0 || totalEarnedPhp > 0;
-
-  const minPayoutUsdCents = db.settings.min_payout_cents; // Default 1000 ($10.00)
-  const minPayoutPhpCents = Math.max(50000, db.settings.min_payout_cents); // ₱500.00
-
-  const currentAvailableCents =
-    payoutCurrency === 'USD' ? availableUsdCents : availablePhpCents;
-  const currentMinCents =
-    payoutCurrency === 'USD' ? minPayoutUsdCents : minPayoutPhpCents;
-  const canRequestPayout =
-    Boolean(currentUser.payout_method_type) && currentAvailableCents >= currentMinCents;
-
-  const myPayoutRequests = db.payout_requests.filter((p) => p.editor_id === currentUser.id);
-  const myLedger = db.ledger_entries.filter((l) => l.user_id === currentUser.id);
-
-  const handleSavePayoutMethod = (e: React.FormEvent) => {
+  const handleSaveMethod = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setToastMsg(null);
     try {
-      savePayoutMethod({
-        type: methodType,
-        gcash_number: methodType === 'gcash' ? gcashNumber : undefined,
-        gcash_name: methodType === 'gcash' ? gcashName || currentUser.display_name : undefined,
-        paypal_email: methodType === 'paypal' ? paypalEmail : undefined,
-        bank_name: methodType === 'bank' ? bankName : undefined,
-        bank_account_number: methodType === 'bank' ? bankAccNumber : undefined,
-        bank_account_name: methodType === 'bank' ? bankAccName || currentUser.display_name : undefined,
-      });
-      setStatusMsg(`Saved ${methodType.toUpperCase()} payout method for @${currentUser.username}.`);
+      if (methodType === 'gcash') {
+        savePayoutMethod({
+          type: 'gcash',
+          gcash_number: gcashNumber,
+          gcash_name: gcashName,
+        });
+      } else if (methodType === 'paypal') {
+        savePayoutMethod({
+          type: 'paypal',
+          paypal_email: paypalEmail,
+        });
+      } else {
+        savePayoutMethod({
+          type: 'bank',
+          bank_name: bankName,
+          bank_account_number: bankAccountNumber,
+          bank_account_holder: bankAccountHolder,
+        });
+      }
+      setToastMsg('Payout method saved.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
@@ -107,220 +97,144 @@ export default function EditorPayoutsPage() {
   const handleRequestPayout = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setToastMsg(null);
     try {
-      const requestedCents = customAmountDollars
-        ? Math.round(Number(customAmountDollars) * 100)
-        : currentAvailableCents;
-
-      const req = requestPayout({
-        amount_cents: requestedCents,
-        currency: payoutCurrency,
-      });
-      setCustomAmountDollars('');
-      setStatusMsg(
-        `Requested payout of ${formatMoneyCents(req.amount_cents, req.currency)} via ${req.payout_method_summary}!`
-      );
+      const cents = Math.round(Number(payoutAmountDollars) * 100);
+      requestPayout({ amount_cents: cents, currency: 'USD' });
+      setToastMsg('Payout request sent. Your ledger is updated.');
     } catch (err) {
       setErrorMsg((err as Error).message);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="border-b border-white/10 pb-4">
-        <span className="font-mono text-xs uppercase tracking-widest text-tally-bright">
-          Editor Withdrawals &amp; Double-Entry Ledger
-        </span>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white">
+    <div className="space-y-8 pb-10">
+      <div>
+        <h1 className="font-display text-3xl sm:text-4xl text-ink">
           Payouts &amp; Financial Ledger
         </h1>
-        <p className="mt-1 text-xs text-zinc-400">
-          Payout methods are collected only when your first earning appears. Minimum withdrawal threshold is{' '}
-          {formatMoneyCents(minPayoutUsdCents, 'USD')} (configurable in Admin Settings).
+        <p className="mt-1 text-sm text-muted">
+          Payout details are only collected after your first clip earns money.
+          Minimum payout is{' '}
+          {formatMoneyCents(db.settings.min_payout_cents, 'USD')}.
         </p>
       </div>
 
-      {statusMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/15 p-3.5 text-xs text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          <span>{statusMsg}</span>
+      {toastMsg && (
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded-xl border border-red-500/35 bg-red-500/10 p-3.5 text-xs text-red-300">
-          {errorMsg}
+        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <span>{errorMsg}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left 6 Cols: Balance & Request Payout */}
-        <div className="lg:col-span-6 space-y-5">
-          <div className="rounded-2xl border border-white/10 bg-surface p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-tally-bright" />
-                <h2 className="text-base font-bold text-white">Available Balance</h2>
-              </div>
-              <div className="flex rounded-lg border border-white/10 bg-inset p-0.5 text-xs">
-                {(['USD', 'PHP'] as const).map((cur) => (
-                  <button
-                    key={cur}
-                    type="button"
-                    onClick={() => setPayoutCurrency(cur)}
-                    className={`rounded-md px-2.5 py-1 font-mono font-bold ${
-                      payoutCurrency === cur
-                        ? 'bg-tally text-zinc-950'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    {cur}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-elevated p-4 flex items-baseline justify-between">
-              <div>
-                <span className="text-[11px] uppercase text-zinc-400">
-                  Withdrawable ({payoutCurrency})
-                </span>
-                <p className="mt-0.5 font-mono text-3xl font-extrabold text-emerald-300">
-                  {formatMoneyCents(currentAvailableCents, payoutCurrency)}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-[11px] uppercase text-zinc-400">Min Threshold</span>
-                <p className="mt-0.5 font-mono text-sm font-bold text-zinc-200">
-                  {formatMoneyCents(currentMinCents, payoutCurrency)}
-                </p>
-              </div>
-            </div>
-
-            {/* Progress toward minimum payout */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Minimum Payout Progress</span>
-                <span className="font-mono font-bold text-white">
-                  {Math.min(100, Math.round((currentAvailableCents / currentMinCents) * 100))}%
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-                <div
-                  className="h-full rounded-full bg-tally transition-all"
-                  style={{
-                    width: `${Math.min(100, Math.round((currentAvailableCents / currentMinCents) * 100))}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <form onSubmit={handleRequestPayout} className="space-y-3 pt-1">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Withdrawal Amount ({payoutCurrency}) · Leave blank for full balance
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min={currentMinCents / 100}
-                  max={currentAvailableCents / 100}
-                  value={customAmountDollars}
-                  onChange={(e) => setCustomAmountDollars(e.target.value)}
-                  placeholder={`${(currentAvailableCents / 100).toFixed(2)}`}
-                  className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3.5 py-2 font-mono text-xs text-white"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={!canRequestPayout}
-                className="w-full rounded-xl bg-tally py-3 text-sm font-extrabold text-zinc-950 transition hover:bg-tally-bright disabled:opacity-40"
-              >
-                {!currentUser.payout_method_type
-                  ? 'Add Payout Method on Right First'
-                  : currentAvailableCents < currentMinCents
-                  ? `Reach ${formatMoneyCents(currentMinCents, payoutCurrency)} to Request Payout`
-                  : `Request Payout (${formatMoneyCents(
-                      customAmountDollars
-                        ? Math.round(Number(customAmountDollars) * 100)
-                        : currentAvailableCents,
-                      payoutCurrency
-                    )})`}
-              </button>
-            </form>
-          </div>
+      {/* Calm Money Summary Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="card-sticker p-6 space-y-1">
+          <span className="text-xs font-extrabold uppercase text-muted">
+            Available Balance
+          </span>
+          <p className="font-display text-3xl text-forest tabular-nums">
+            {formatMoneyCents(wallet.availableBalanceCents, 'USD')}
+          </p>
+          <p className="text-xs font-bold text-muted">
+            Min {formatMoneyCents(db.settings.min_payout_cents, 'USD')} required
+          </p>
         </div>
 
-        {/* Right 6 Cols: Payout Method Configurator (GCash, PayPal, Bank) */}
-        <div className="lg:col-span-6">
-          <div className="rounded-2xl border border-white/10 bg-surface p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-tally-bright" />
-                <h2 className="text-base font-bold text-white">Payout Method</h2>
-              </div>
-              {currentUser.payout_method_type ? (
-                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/35 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
-                  Active: {currentUser.payout_method_type.toUpperCase()}
-                </span>
-              ) : (
-                <span className="rounded-full bg-amber-500/15 border border-amber-500/35 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
-                  {hasAnyEarning ? 'First Earning Ready · Set Up Now' : 'Not Required Until First Earning'}
-                </span>
-              )}
+        <div className="card-sticker p-6 space-y-1">
+          <span className="text-xs font-extrabold uppercase text-muted">
+            Total Earned
+          </span>
+          <p className="font-display text-3xl text-ink tabular-nums">
+            {formatMoneyCents(wallet.totalEarnedCents, 'USD')}
+          </p>
+          <p className="text-xs font-bold text-muted">
+            Base pay + counted view earnings
+          </p>
+        </div>
+
+        <div className="card-sticker p-6 space-y-1">
+          <span className="text-xs font-extrabold uppercase text-muted">
+            Paid Out So Far
+          </span>
+          <p className="font-display text-3xl text-ink tabular-nums">
+            {formatMoneyCents(wallet.totalPaidCents, 'USD')}
+          </p>
+          <p className="text-xs font-bold text-muted">
+            In queue: {formatMoneyCents(wallet.pendingPayoutCents, 'USD')}
+          </p>
+        </div>
+      </div>
+
+      {/* Payout Method + Request Payout Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Left: Payout Method Setup (Collected only when first earning appears) */}
+        <div className="card-sticker p-6 space-y-4">
+          <h2 className="font-display text-2xl text-ink">
+            Where to Send Your Money
+          </h2>
+
+          {wallet.totalEarnedCents === 0 ? (
+            <div className="rounded-btn border-2 border-ink bg-mint p-4 text-sm font-bold text-ink">
+              You do not need to fill out payout details yet. This form opens as
+              soon as your first clip earns money.
             </div>
-
-            {!hasAnyEarning && !currentUser.payout_method_type && (
-              <div className="rounded-xl border border-white/10 bg-elevated p-3 text-xs text-zinc-300">
-                <Sparkles className="inline h-3.5 w-3.5 text-tally-bright mr-1" />
-                You do not need to enter payout details until your first clip earns money, though you can pre-configure it below anytime.
-              </div>
-            )}
-
-            <form onSubmit={handleSavePayoutMethod} className="space-y-3.5">
+          ) : (
+            <form onSubmit={handleSaveMethod} className="space-y-4">
               <div className="grid grid-cols-3 gap-2">
-                {(['gcash', 'paypal', 'bank'] as const).map((t) => (
+                {(['gcash', 'paypal', 'bank'] as PayoutMethodType[]).map((m) => (
                   <button
-                    key={t}
+                    key={m}
                     type="button"
-                    onClick={() => setMethodType(t)}
-                    className={`rounded-xl border py-2 text-xs font-bold uppercase transition ${
-                      methodType === t
-                        ? 'border-tally-bright bg-tally/15 text-white'
-                        : 'border-white/10 bg-elevated text-zinc-400 hover:text-white'
+                    onClick={() => setMethodType(m)}
+                    className={`btn-sticker py-2 text-xs uppercase ${
+                      methodType === m ? 'btn-primary' : 'btn-secondary'
                     }`}
                   >
-                    {t === 'gcash' ? 'GCash' : t === 'paypal' ? 'PayPal' : 'Bank Transfer'}
+                    {m}
                   </button>
                 ))}
               </div>
 
               {methodType === 'gcash' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      GCash Mobile Number
+                    <label
+                      htmlFor="payout-gcash-num"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      GCash mobile number
                     </label>
                     <input
+                      id="payout-gcash-num"
                       type="text"
                       required
                       value={gcashNumber}
                       onChange={(e) => setGcashNumber(e.target.value)}
-                      placeholder="0917xxxxxxx"
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
+                      className="input-sticker tabular-nums"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Verified Account Name
+                    <label
+                      htmlFor="payout-gcash-name"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Account full name
                     </label>
                     <input
+                      id="payout-gcash-name"
                       type="text"
                       required
                       value={gcashName}
                       onChange={(e) => setGcashName(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 text-xs text-white"
+                      className="input-sticker"
                     />
                   </div>
                 </div>
@@ -328,169 +242,194 @@ export default function EditorPayoutsPage() {
 
               {methodType === 'paypal' && (
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    PayPal Email Address
+                  <label
+                    htmlFor="payout-paypal-email"
+                    className="mb-1 block text-xs font-extrabold text-ink"
+                  >
+                    PayPal email address
                   </label>
                   <input
+                    id="payout-paypal-email"
                     type="email"
                     required
                     value={paypalEmail}
                     onChange={(e) => setPaypalEmail(e.target.value)}
-                    placeholder="you@domain.com"
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
+                    className="input-sticker"
                   />
                 </div>
               )}
 
               {methodType === 'bank' && (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-zinc-300">Bank Name</label>
-                      <input
-                        type="text"
-                        required
-                        value={bankName}
-                        onChange={(e) => setBankName(e.target.value)}
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 text-xs text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-zinc-300">
-                        Account Number
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={bankAccNumber}
-                        onChange={(e) => setBankAccNumber(e.target.value)}
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 font-mono text-xs text-white"
-                      />
-                    </div>
-                  </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Account Holder Name
+                    <label
+                      htmlFor="payout-bank-name"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Bank name
                     </label>
                     <input
+                      id="payout-bank-name"
                       type="text"
                       required
-                      value={bankAccName}
-                      onChange={(e) => setBankAccName(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-inset px-3 py-2 text-xs text-white"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="input-sticker"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="payout-bank-num"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Account number
+                    </label>
+                    <input
+                      id="payout-bank-num"
+                      type="text"
+                      required
+                      value={bankAccountNumber}
+                      onChange={(e) => setBankAccountNumber(e.target.value)}
+                      className="input-sticker tabular-nums"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="payout-bank-holder"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Account holder name
+                    </label>
+                    <input
+                      id="payout-bank-holder"
+                      type="text"
+                      required
+                      value={bankAccountHolder}
+                      onChange={(e) => setBankAccountHolder(e.target.value)}
+                      className="input-sticker"
                     />
                   </div>
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="w-full rounded-xl border border-tally/40 bg-tally/15 py-2.5 text-xs font-bold text-tally-bright hover:bg-tally/25"
-              >
-                Save Payout Method
+              <button type="submit" className="btn-sticker btn-primary w-full">
+                <span>Save Payout Method</span>
               </button>
             </form>
-          </div>
+          )}
+        </div>
+
+        {/* Right: Request Payout */}
+        <div className="card-sticker p-6 space-y-4">
+          <h2 className="font-display text-2xl text-ink">Request a Payout</h2>
+          <form onSubmit={handleRequestPayout} className="space-y-4">
+            <div>
+              <label
+                htmlFor="request-payout-amount"
+                className="mb-1.5 block text-sm font-extrabold text-ink"
+              >
+                Amount to cash out (USD)
+              </label>
+              <input
+                id="request-payout-amount"
+                type="number"
+                step="0.01"
+                min="10"
+                value={payoutAmountDollars}
+                onChange={(e) => setPayoutAmountDollars(e.target.value)}
+                className="input-sticker tabular-nums"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={!wallet.canRequestPayout || !editor.payout_method_type}
+              className="btn-sticker btn-primary w-full"
+            >
+              <Coins weight="bold" className="h-5 w-5" />
+              <span>Request Payout Now</span>
+            </button>
+
+            {!wallet.canRequestPayout && (
+              <p className="text-xs font-bold text-muted">
+                You need at least{' '}
+                {formatMoneyCents(db.settings.min_payout_cents, 'USD')} available to
+                request a payout.
+              </p>
+            )}
+          </form>
+
+          {myPayoutRequests.length > 0 && (
+            <div className="border-t-2 border-ink pt-4 space-y-2">
+              <h3 className="text-xs font-extrabold uppercase text-ink">
+                Your Payout Requests
+              </h3>
+              {myPayoutRequests.map((pr) => (
+                <div
+                  key={pr.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-btn border-2 border-ink bg-mint p-3 text-xs tabular-nums"
+                >
+                  <div>
+                    <span className="font-extrabold text-ink">
+                      {formatMoneyCents(pr.amount_cents, pr.currency)}
+                    </span>
+                    <span className="ml-2 font-bold text-muted">
+                      ({pr.payout_method_type.toUpperCase()} ·{' '}
+                      {pr.payout_method_summary})
+                    </span>
+                    {pr.reference_number && (
+                      <span className="block text-[11px] font-bold text-forest">
+                        Ref: {pr.reference_number}
+                      </span>
+                    )}
+                  </div>
+                  <PayoutStatusChip status={pr.status} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Payout Requests History */}
-      <div className="rounded-2xl border border-white/10 bg-surface p-5 space-y-3">
-        <h2 className="text-base font-bold text-white">
-          Payout Requests ({myPayoutRequests.length})
-        </h2>
-        {myPayoutRequests.length === 0 ? (
-          <p className="text-xs text-zinc-500">No payout requests submitted yet.</p>
-        ) : (
-          <div className="space-y-2.5">
-            {myPayoutRequests.map((pr) => (
-              <div
-                key={pr.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-elevated p-3.5 text-xs"
-              >
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-extrabold text-white">
-                      {formatMoneyCents(pr.amount_cents, pr.currency)}
-                    </span>
-                    <PayoutStatusChip status={pr.status} />
-                  </div>
-                  <p className="text-zinc-400">
-                    Destination: <span className="text-zinc-200">{pr.payout_method_summary}</span>
-                  </p>
-                  {pr.reference_number && (
-                    <p className="font-mono text-[11px] text-emerald-300">
-                      Reference #: {pr.reference_number}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {pr.receipt_url && (
-                    <a
-                      href={pr.receipt_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1 text-[11px] text-tally-bright hover:underline"
-                    >
-                      Receipt Image <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <span className="font-mono text-[11px] text-zinc-400">
-                    {new Date(pr.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Full Immutable User Ledger */}
-      <div className="rounded-2xl border border-white/10 bg-surface p-5 space-y-3">
-        <h2 className="text-base font-bold text-white">
-          Full Financial Ledger ({myLedger.length} Entries)
+      {/* Full Financial Ledger Table */}
+      <div className="card-sticker p-6 space-y-4">
+        <h2 className="font-display text-2xl text-ink">
+          Full Account Ledger
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm tabular-nums">
             <thead>
-              <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-400">
-                <th className="py-2.5 pr-3">Date</th>
-                <th className="py-2.5 px-3">Type</th>
-                <th className="py-2.5 px-3">Description</th>
-                <th className="py-2.5 px-3 text-right">Amount</th>
-                <th className="py-2.5 pl-3 text-right">Balance After</th>
+              <tr className="border-b-2 border-ink text-xs font-extrabold uppercase text-muted">
+                <th className="py-2.5 pr-4">Date</th>
+                <th className="py-2.5 pr-4">Type</th>
+                <th className="py-2.5 pr-4">Description</th>
+                <th className="py-2.5 pr-4 text-right">Amount</th>
+                <th className="py-2.5 text-right">Balance After</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-mono">
+            <tbody className="divide-y-2 divide-ink/20">
               {myLedger.map((entry) => (
-                <tr key={entry.id} className="text-zinc-200">
-                  <td className="py-2.5 pr-3 text-[11px] text-zinc-400">
+                <tr key={entry.id} className="hover:bg-mint">
+                  <td className="py-3 pr-4 text-xs font-bold text-muted">
                     {new Date(entry.created_at).toLocaleDateString()}
                   </td>
-                  <td className="py-2.5 px-3">
-                    <span
-                      className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                        entry.entry_type === 'earning'
-                          ? 'bg-emerald-500/15 text-emerald-300'
-                          : entry.entry_type === 'payout'
-                          ? 'bg-sky-500/15 text-sky-300'
-                          : 'bg-amber-500/15 text-amber-300'
-                      }`}
-                    >
+                  <td className="py-3 pr-4">
+                    <span className="rounded-full border-2 border-ink bg-mint px-2.5 py-0.5 text-xs font-extrabold uppercase text-ink">
                       {entry.entry_type}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 font-sans text-zinc-300">{entry.description}</td>
+                  <td className="py-3 pr-4 text-xs font-bold text-ink">
+                    {entry.description}
+                  </td>
                   <td
-                    className={`py-2.5 px-3 text-right font-bold ${
-                      entry.amount_cents >= 0 ? 'text-emerald-300' : 'text-zinc-200'
+                    className={`py-3 pr-4 text-right font-extrabold ${
+                      entry.amount_cents >= 0 ? 'text-forest' : 'text-ink'
                     }`}
                   >
                     {entry.amount_cents >= 0 ? '+' : ''}
                     {formatMoneyCents(entry.amount_cents, entry.currency)}
                   </td>
-                  <td className="py-2.5 pl-3 text-right text-white">
+                  <td className="py-3 text-right font-extrabold text-ink">
                     {formatMoneyCents(entry.balance_after_cents, entry.currency)}
                   </td>
                 </tr>

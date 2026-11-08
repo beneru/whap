@@ -96,6 +96,7 @@ export function validateVideoFile(file: File): { valid: boolean; error?: string 
  * Starts or resumes a TUS resumable video upload to the private `submissions-raw` bucket.
  * Automatically persists byte offsets so uploads survive network drops and mobile switches.
  */
+export const startResumableClipUpload = startResumableVideoUpload;
 export function startResumableVideoUpload(params: {
   file: File;
   editorId: string;
