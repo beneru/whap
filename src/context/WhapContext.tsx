@@ -97,6 +97,11 @@ interface WhapContextValue {
   // Campaigns
   createCampaign: (input: Record<string, unknown>) => Campaign;
   updateCampaign: (campaignId: string, input: Record<string, unknown>) => Campaign;
+  depositCampaignEscrow: (input: {
+    campaign_id: string;
+    amount_cents: number;
+    reference?: string;
+  }) => void;
   // Submissions & Review Queue
   createSubmission: (input: {
     campaign_id: string;
@@ -524,6 +529,66 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     }));
 
     return updated;
+  };
+
+  const depositCampaignEscrow = (input: {
+    campaign_id: string;
+    amount_cents: number;
+    reference?: string;
+  }) => {
+    const camp = db.campaigns.find((c) => c.id === input.campaign_id);
+    if (!camp) throw new Error('Campaign not found.');
+    const nowIso = new Date().toISOString();
+
+    setDb((prev) => {
+      const nextLedger = [...prev.ledger_entries];
+      const nextNotifications = [...prev.notifications];
+
+      const prevBal = nextLedger
+        .filter((l) => l.user_id === camp.owner_id && l.currency === camp.currency)
+        .reduce((s, l) => s + l.amount_cents, 0);
+
+      nextLedger.unshift({
+        id: `led-${Date.now()}`,
+        user_id: camp.owner_id,
+        campaign_id: camp.id,
+        submission_id: null,
+        payout_request_id: null,
+        entry_type: 'deposit',
+        amount_cents: input.amount_cents,
+        currency: camp.currency,
+        balance_after_cents: prevBal + input.amount_cents,
+        description: `Stripe escrow deposit for ${camp.title}: +${formatMoneyCents(
+          input.amount_cents,
+          camp.currency
+        )} (${input.reference || 'Stripe Checkout'})`,
+        created_by: currentUser?.id || camp.owner_id,
+        created_at: nowIso,
+      });
+
+      pushNotification(nextNotifications, prev.profiles, {
+        userId: camp.owner_id,
+        type: 'escrow_deposited',
+        title: `Escrow Deposit Confirmed: +${formatMoneyCents(input.amount_cents, camp.currency)}`,
+        body: `Your Stripe deposit was received and credited to the campaign escrow balance.`,
+        actionUrl: `/campaigns/${camp.id}`,
+      });
+
+      return {
+        ...prev,
+        campaigns: prev.campaigns.map((c) =>
+          c.id === camp.id
+            ? {
+                ...c,
+                funded_escrow_cents: (c.funded_escrow_cents || 0) + input.amount_cents,
+                updated_at: nowIso,
+              }
+            : c
+        ),
+        ledger_entries: nextLedger,
+        notifications: nextNotifications,
+      };
+    });
   };
 
   const createSubmission = (input: {
@@ -1392,7 +1457,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
   }): PayoutRequest => {
     if (!currentUser) throw new Error('Sign in to request a payout.');
     if (!currentUser.payout_method_type || !currentUser.payout_method_details) {
-      throw new Error('Set up your payout method (GCash, PayPal, or Bank) before requesting a payout.');
+      throw new Error('Set up your payout method (GCash, PayPal, Bank, or Stripe) before requesting a payout.');
     }
 
     const parsed = RequestPayoutSchema.parse(input);
@@ -1422,7 +1487,9 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         ? `GCash ${details.gcash_number} (${details.gcash_name})`
         : details.type === 'paypal'
         ? `PayPal (${details.paypal_email})`
-        : `${details.bank_name} ${details.bank_account_number} (${details.bank_account_name})`;
+        : details.type === 'stripe'
+        ? `Stripe (${details.stripe_email || details.stripe_account_id})`
+        : `${details.bank_name} ${details.bank_account_number} (${details.bank_account_name || details.bank_account_holder})`;
 
     // Determine primary Account Holder for this editor's earnings
     const editorSub = db.submissions.find(
@@ -1796,6 +1863,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         updateEditorProfile,
         createCampaign,
         updateCampaign,
+        depositCampaignEscrow,
         createSubmission,
         resubmitClip,
         reviewSubmission,

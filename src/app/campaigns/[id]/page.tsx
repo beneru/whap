@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -10,6 +10,7 @@ import {
   CheckCircle,
   Clock,
   Copy,
+  CreditCard,
   DownloadSimple,
   FileText,
   Image as ImageIcon,
@@ -22,6 +23,7 @@ import {
   SpeakerHigh,
   UploadSimple,
   WarningCircle,
+  X,
 } from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
 import { InstructionAsset } from '@/lib/types';
@@ -47,7 +49,7 @@ import { getDaysLeftLabel } from '@/components/CampaignCard';
 export default function CampaignDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { db, currentUser, setAuthModalOpen, createSubmission } = useWhap();
+  const { db, currentUser, setAuthModalOpen, createSubmission, depositCampaignEscrow } = useWhap();
 
   const campaign = db.campaigns.find((c) => c.id === params.id);
 
@@ -95,6 +97,79 @@ export default function CampaignDetailPage() {
 
   // Interactive calculator state
   const [calcViews, setCalcViews] = useState(25000);
+
+  // Stripe Escrow Pre-Funding state
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [depositDollars, setDepositDollars] = useState<number>(100);
+  const [isDepositing, setIsDepositing] = useState(false);
+  const [depositError, setDepositError] = useState<string | null>(null);
+  const [depositToast, setDepositToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !campaign) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const funded = searchParams.get('funded');
+    const amountStr = searchParams.get('amount');
+    const sessionId = searchParams.get('session_id');
+    const canceled = searchParams.get('canceled');
+
+    if (funded === 'true') {
+      const depositCents = parseInt(amountStr || '10000', 10);
+      if (!isNaN(depositCents) && depositCents > 0) {
+        try {
+          depositCampaignEscrow({
+            campaign_id: campaign.id,
+            amount_cents: depositCents,
+            reference: sessionId || 'Stripe Checkout',
+          });
+          setDepositToast(
+            `Stripe escrow deposit of ${formatMoneyCents(
+              depositCents,
+              campaign.currency
+            )} confirmed and locked in campaign escrow!`
+          );
+        } catch (err) {
+          setDepositError((err as Error).message);
+        }
+      }
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (canceled === 'true') {
+      setDepositToast('Stripe checkout was canceled. No funds were charged.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [campaign?.id, depositCampaignEscrow, campaign?.currency]);
+
+  const handleLaunchStripeCheckout = async () => {
+    if (!campaign) return;
+    setIsDepositing(true);
+    setDepositError(null);
+    try {
+      const amountCents = Math.round(Number(depositDollars) * 100);
+      if (isNaN(amountCents) || amountCents < 500) {
+        throw new Error('Minimum escrow deposit is $5.00.');
+      }
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaign_id: campaign.id,
+          amount_cents: amountCents,
+          currency: campaign.currency,
+          user_email: currentUser?.email || 'holder@example.com',
+          success_url: `${window.location.origin}/campaigns/${campaign.id}?funded=true&amount=${amountCents}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/campaigns/${campaign.id}?canceled=true`,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success || !data.url) {
+        throw new Error(data.error || 'Failed to initialize Stripe Checkout');
+      }
+      window.location.href = data.url;
+    } catch (err) {
+      setDepositError((err as Error).message);
+      setIsDepositing(false);
+    }
+  };
 
   if (!campaign) {
     return (
@@ -241,6 +316,22 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="space-y-6 pb-10">
+      {depositToast && (
+        <div className="flex items-center justify-between gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
+            <span>{depositToast}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDepositToast(null)}
+            className="text-xs font-bold text-muted hover:text-ink"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/campaigns"
@@ -856,15 +947,30 @@ export default function CampaignDetailPage() {
               </div>
             </div>
 
-            {/* Escrow Funding Guarantee */}
-            <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-2.5 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 font-bold text-ink">
-                <ShieldCheck weight="bold" className="h-4 w-4 text-forest shrink-0" />
-                <span>Pre-Funded Escrow Pool</span>
+            {/* Escrow Funding Guarantee & Stripe Deposit */}
+            <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-ink">
+                  <ShieldCheck weight="bold" className="h-4 w-4 text-forest shrink-0" />
+                  <span>Pre-Funded Escrow Pool</span>
+                </div>
+                <span className="font-extrabold text-forest tabular-nums text-sm">
+                  {formatMoneyCents(budget.fundedEscrowCents, campaign.currency)}
+                </span>
               </div>
-              <span className="font-extrabold text-forest tabular-nums">
-                {formatMoneyCents(budget.fundedEscrowCents, campaign.currency)}
-              </span>
+              <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-emerald-500/20 text-xs">
+                <span className="text-[11px] font-medium text-muted">
+                  Secures creator payouts
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDepositModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-ink bg-white px-2.5 py-1 text-[11px] font-extrabold text-ink hover:bg-mint transition-colors shadow-[2px_2px_0px_#13261B]"
+                >
+                  <CreditCard weight="bold" className="h-3.5 w-3.5 text-forest" />
+                  <span>Deposit with Stripe</span>
+                </button>
+              </div>
             </div>
 
             {/* Remaining Budget Bar */}
@@ -1029,6 +1135,122 @@ export default function CampaignDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Stripe Pre-Funding Escrow Modal */}
+      {depositModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
+          <div className="card-sticker max-w-md w-full bg-paper p-6 space-y-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="chip-sticker bg-sprout text-ink text-xs">
+                  Stripe Payment
+                </span>
+                <h3 className="font-display text-2xl text-ink mt-1">
+                  Pre-Fund Escrow Pool
+                </h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Deposit funds via Stripe to lock in guaranteed payouts for editors submitting to {campaign.title}.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDepositModalOpen(false)}
+                className="text-muted hover:text-ink p-1"
+                aria-label="Close modal"
+              >
+                <X weight="bold" className="h-5 w-5" />
+              </button>
+            </div>
+
+            {depositError && (
+              <div className="rounded-xl border border-coral/40 bg-coral/15 p-3 text-xs font-semibold text-ink flex items-center gap-2">
+                <WarningCircle weight="bold" className="h-4 w-4 text-coral shrink-0" />
+                <span>{depositError}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <label className="block text-xs font-extrabold uppercase text-ink">
+                Quick Select Amount (USD)
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[50, 100, 250, 500].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setDepositDollars(amt)}
+                    className={`btn-sticker py-2 text-xs font-extrabold tabular-nums ${
+                      depositDollars === amt ? 'btn-primary' : 'btn-secondary'
+                    }`}
+                  >
+                    ${amt}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="custom-deposit-input"
+                  className="block text-xs font-extrabold text-ink mb-1"
+                >
+                  Or enter custom dollar amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted text-sm">
+                    $
+                  </span>
+                  <input
+                    id="custom-deposit-input"
+                    type="number"
+                    min="5"
+                    step="1"
+                    value={depositDollars}
+                    onChange={(e) => setDepositDollars(Number(e.target.value))}
+                    className="input-sticker pl-7 tabular-nums text-sm font-bold"
+                  />
+                </div>
+                <p className="text-[11px] text-muted mt-1">
+                  Minimum deposit is $5.00 USD. Current pool: {formatMoneyCents(budget.fundedEscrowCents, campaign.currency)}.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-mint/60 p-3 space-y-1 text-xs">
+              <div className="flex justify-between font-semibold text-ink">
+                <span>Deposit Amount:</span>
+                <span className="font-extrabold tabular-nums">
+                  ${depositDollars.toFixed(2)} USD
+                </span>
+              </div>
+              <div className="flex justify-between font-semibold text-muted text-[11px]">
+                <span>Escrow Pool After Deposit:</span>
+                <span className="font-extrabold text-forest tabular-nums">
+                  {formatMoneyCents(budget.fundedEscrowCents + Math.round(depositDollars * 100), campaign.currency)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDepositModalOpen(false)}
+                className="btn-sticker btn-secondary flex-1"
+              >
+                <span>Cancel</span>
+              </button>
+              <button
+                type="button"
+                disabled={isDepositing || depositDollars < 5}
+                onClick={handleLaunchStripeCheckout}
+                className="btn-sticker btn-primary flex-1"
+              >
+                <CreditCard weight="bold" className="h-4 w-4" />
+                <span>{isDepositing ? 'Redirecting...' : 'Pay with Stripe'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

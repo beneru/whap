@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Broadcast,
   Coins,
+  CreditCard,
   NotePencil,
   PlusCircle,
   Queue,
@@ -177,10 +178,17 @@ export default function AccountHolderDashboardPage() {
           {myCampaigns.map((camp) => (
             <div key={camp.id} className="space-y-2">
               <CampaignCard campaign={camp} submissions={db.submissions} />
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between text-xs font-extrabold pt-1">
+                <Link
+                  href={`/campaigns/${camp.id}`}
+                  className="inline-flex items-center gap-1 text-forest hover:underline"
+                >
+                  <CreditCard weight="bold" className="h-3.5 w-3.5" />
+                  <span>Pre-Fund with Stripe</span>
+                </Link>
                 <Link
                   href={`/holder/campaigns/${camp.id}/edit`}
-                  className="inline-flex items-center gap-1 text-xs font-extrabold text-forest hover:underline"
+                  className="inline-flex items-center gap-1 text-forest hover:underline"
                 >
                   <NotePencil weight="bold" className="h-3.5 w-3.5" />
                   <span>Edit Campaign</span>

@@ -186,13 +186,15 @@ export const ResolveDisputeSchema = z.object({
 // 8. Payout Method & Request Schema
 export const PayoutMethodSchema = z
   .object({
-    type: z.enum(['gcash', 'paypal', 'bank']),
+    type: z.enum(['gcash', 'paypal', 'bank', 'stripe']),
     gcash_number: z.string().trim().optional(),
     gcash_name: z.string().trim().optional(),
     paypal_email: z.string().trim().email().optional().or(z.literal('')),
     bank_name: z.string().trim().optional(),
     bank_account_number: z.string().trim().optional(),
     bank_account_name: z.string().trim().optional(),
+    stripe_account_id: z.string().trim().optional(),
+    stripe_email: z.string().trim().email().optional().or(z.literal('')),
   })
   .refine(
     (data) => {
@@ -205,6 +207,9 @@ export const PayoutMethodSchema = z
       if (data.type === 'bank') {
         return Boolean(data.bank_name && data.bank_account_number && data.bank_account_name);
       }
+      if (data.type === 'stripe') {
+        return Boolean((data.stripe_email && data.stripe_email.includes('@')) || data.stripe_account_id);
+      }
       return false;
     },
     {
@@ -212,6 +217,14 @@ export const PayoutMethodSchema = z
       path: ['type'],
     }
   );
+
+export const StripeDepositSchema = z.object({
+  campaign_id: z.string().min(1, 'Campaign ID is required'),
+  amount_cents: z.coerce.number().int().min(500, 'Minimum deposit is $5.00 (500 cents)'),
+  currency: CurrencyEnum.default('USD'),
+  success_url: z.string().optional(),
+  cancel_url: z.string().optional(),
+});
 
 export const RequestPayoutSchema = z.object({
   amount_cents: z.coerce.number().int().min(100, 'Amount must be positive'),

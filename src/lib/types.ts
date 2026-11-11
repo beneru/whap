@@ -17,14 +17,14 @@ export type SubmissionStatus =
   | 'paid'
   | 'rejected';
 
-export type PayoutMethodType = 'gcash' | 'paypal' | 'bank';
+export type PayoutMethodType = 'gcash' | 'paypal' | 'bank' | 'stripe';
 
 export type DisputeStatus = 'open' | 'resolved_upheld' | 'resolved_overturned';
 
 export type PayoutRequestStatus = 'pending' | 'paid' | 'rejected' | 'requested';
 export type PayoutStatus = PayoutRequestStatus;
 
-export type LedgerEntryType = 'earning' | 'payout' | 'adjustment';
+export type LedgerEntryType = 'earning' | 'payout' | 'adjustment' | 'deposit';
 
 export type NotificationType =
   | 'new_submission'
@@ -39,6 +39,7 @@ export type NotificationType =
   | 'dispute_opened'
   | 'dispute_resolved'
   | 'escrow_locked'
+  | 'escrow_deposited'
   | 'base_fee_paid'
   | 'kill_fee_paid'
   | 'rights_reverted';
@@ -52,6 +53,8 @@ export interface PayoutMethodDetails {
   bank_account_number?: string;
   bank_account_name?: string;
   bank_account_holder?: string;
+  stripe_account_id?: string;
+  stripe_email?: string;
 }
 
 export interface Profile {

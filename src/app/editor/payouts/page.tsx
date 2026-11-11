@@ -52,6 +52,12 @@ export default function EditorPayoutsPage() {
   const [bankAccountHolder, setBankAccountHolder] = useState(
     editor.payout_method_details?.bank_account_holder || editor.display_name
   );
+  const [stripeEmail, setStripeEmail] = useState(
+    editor.payout_method_details?.stripe_email || editor.email
+  );
+  const [stripeAccountId, setStripeAccountId] = useState(
+    editor.payout_method_details?.stripe_account_id || ''
+  );
 
   const [payoutAmountDollars, setPayoutAmountDollars] = useState(
     Math.max(10, wallet.availableBalanceCents / 100).toFixed(2)
@@ -79,6 +85,12 @@ export default function EditorPayoutsPage() {
         savePayoutMethod({
           type: 'paypal',
           paypal_email: paypalEmail,
+        });
+      } else if (methodType === 'stripe') {
+        savePayoutMethod({
+          type: 'stripe',
+          stripe_email: stripeEmail || undefined,
+          stripe_account_id: stripeAccountId || undefined,
         });
       } else {
         savePayoutMethod({
@@ -188,8 +200,8 @@ export default function EditorPayoutsPage() {
             </div>
           ) : (
             <form onSubmit={handleSaveMethod} className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
-                {(['gcash', 'paypal', 'bank'] as PayoutMethodType[]).map((m) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['gcash', 'paypal', 'bank', 'stripe'] as PayoutMethodType[]).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -307,6 +319,46 @@ export default function EditorPayoutsPage() {
                       value={bankAccountHolder}
                       onChange={(e) => setBankAccountHolder(e.target.value)}
                       className="input-sticker"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {methodType === 'stripe' && (
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="payout-stripe-email"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Stripe account email
+                    </label>
+                    <input
+                      id="payout-stripe-email"
+                      type="email"
+                      value={stripeEmail}
+                      onChange={(e) => setStripeEmail(e.target.value)}
+                      placeholder="editor@example.com"
+                      className="input-sticker"
+                    />
+                    <p className="mt-1 text-[11px] font-medium text-muted">
+                      Direct payouts will be transferred to your Stripe account.
+                    </p>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="payout-stripe-acct"
+                      className="mb-1 block text-xs font-extrabold text-ink"
+                    >
+                      Stripe Connect account ID (optional)
+                    </label>
+                    <input
+                      id="payout-stripe-acct"
+                      type="text"
+                      value={stripeAccountId}
+                      onChange={(e) => setStripeAccountId(e.target.value)}
+                      placeholder="acct_1N..."
+                      className="input-sticker tabular-nums"
                     />
                   </div>
                 </div>
