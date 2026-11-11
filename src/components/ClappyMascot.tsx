@@ -12,14 +12,15 @@ interface ClappyMascotProps {
 }
 
 /**
- * Original Whap Mascot: Clappy the Clapperboard
- * Flat fills, 2px #13261B ink outline, stubby arms, simple eyes, zero gradients, < 3KB inline SVG.
+ * Modern Professional Whap Visual Emblem
+ * Clean geometric film slate, crisp lines, subtle emerald accents.
+ * Professional creator tool aesthetic (Linear / Whop inspired).
  */
 export function ClappyMascot({
   variant = 'wave',
   size = 112,
   className = '',
-  label = 'Clappy the Clapperboard mascot',
+  label = 'Whap Creator Emblem',
 }: ClappyMascotProps) {
   const isCelebrate = variant === 'celebrate';
   const isEmpty = variant === 'empty';
@@ -36,217 +37,178 @@ export function ClappyMascot({
       aria-label={label}
       className={className}
     >
-      {/* Hard offset ground shadow */}
-      <ellipse cx="62" cy="110" rx="34" ry="5" fill="#13261B" />
+      {/* Ambient soft shadow */}
+      <ellipse cx="60" cy="108" rx="38" ry="4" fill="#0F1E15" fillOpacity="0.08" />
 
-      {/* Left stubby arm */}
-      {isCelebrate ? (
-        <path
-          d="M24 62 C12 50, 10 38, 16 32 C20 28, 25 34, 26 44"
-          fill="#3DDC84"
-          stroke="#13261B"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      ) : (
-        <path
-          d="M24 64 C13 64, 10 72, 16 77 C20 80, 24 76, 26 70"
-          fill="#3DDC84"
-          stroke="#13261B"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      )}
-
-      {/* Right stubby arm (waves or holds magnifying glass / star) */}
-      {variant === 'wave' || isCelebrate ? (
-        <path
-          d="M96 62 C108 50, 110 36, 103 31 C98 28, 94 35, 94 46"
-          fill="#3DDC84"
-          stroke="#13261B"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      ) : (
-        <path
-          d="M96 65 C106 66, 109 74, 102 78 C98 80, 95 76, 94 70"
-          fill="#3DDC84"
-          stroke="#13261B"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      )}
-
-      {/* Stubby legs / boots */}
+      {/* Main slate container */}
       <rect
-        x="40"
-        y="94"
-        width="14"
-        height="14"
-        rx="6"
-        fill="#0F7D43"
-        stroke="#13261B"
-        strokeWidth="2"
-      />
-      <rect
-        x="66"
-        y="94"
-        width="14"
-        height="14"
-        rx="6"
-        fill="#0F7D43"
-        stroke="#13261B"
-        strokeWidth="2"
-      />
-
-      {/* Main clapperboard body */}
-      <rect
-        x="24"
-        y="36"
-        width="72"
-        height="62"
-        rx="14"
+        x="20"
+        y="38"
+        width="80"
+        height="64"
+        rx="12"
         fill="#FFFFFF"
         stroke="#13261B"
-        strokeWidth="2"
+        strokeWidth="1.75"
       />
 
-      {/* Mint belly sticker panel */}
+      {/* Subtle interior workspace pane */}
       <rect
-        x="30"
-        y="46"
-        width="60"
-        height="46"
-        rx="10"
+        x="26"
+        y="44"
+        width="68"
+        height="52"
+        rx="8"
         fill="#EEF9F1"
         stroke="#13261B"
-        strokeWidth="2"
+        strokeWidth="1"
+        strokeOpacity="0.15"
       />
 
-      {/* Top hinged clapper bar (tilted up when celebrating) */}
-      <g transform={isCelebrate ? 'rotate(-10 24 34)' : 'rotate(-4 24 34)'}>
+      {/* Top hinged clapper bar */}
+      <g transform={isCelebrate ? 'rotate(-8 20 34)' : 'rotate(-2 20 34)'}>
         <rect
-          x="22"
+          x="18"
           y="20"
-          width="76"
+          width="84"
           height="16"
-          rx="6"
+          rx="5"
           fill="#3DDC84"
           stroke="#13261B"
-          strokeWidth="2"
+          strokeWidth="1.75"
         />
-        {/* Flat diagonal clapper stripes */}
+        {/* Diagonal slate marks */}
         <polygon
-          points="36,20 46,20 38,36 28,36"
+          points="32,20 42,20 34,36 24,36"
           fill="#FFFFFF"
           stroke="#13261B"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
         <polygon
-          points="58,20 68,20 60,36 50,36"
+          points="54,20 64,20 56,36 46,36"
           fill="#FFFFFF"
           stroke="#13261B"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
         <polygon
-          points="80,20 90,20 82,36 72,36"
+          points="76,20 86,20 78,36 68,36"
           fill="#FFFFFF"
           stroke="#13261B"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
-        {/* Hinge bolt */}
+        {/* Sleek metallic hinge pin */}
         <circle
-          cx="29"
+          cx="24"
           cy="28"
-          r="3.5"
-          fill="#FFD23F"
+          r="3"
+          fill="#0F7D43"
           stroke="#13261B"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
       </g>
 
-      {/* Simple expressive eyes */}
-      <circle cx="46" cy="64" r="5" fill="#13261B" />
-      <circle cx="44.5" cy="62.5" r="1.5" fill="#FFFFFF" />
-      <circle cx="74" cy="64" r="5" fill="#13261B" />
-      <circle cx="72.5" cy="62.5" r="1.5" fill="#FFFFFF" />
-
-      {/* Rosy sticker cheeks */}
-      <ellipse
-        cx="37"
-        cy="71"
-        rx="4.5"
-        ry="2.5"
-        fill="#FFD23F"
-        stroke="#13261B"
-        strokeWidth="1.5"
-      />
-      <ellipse
-        cx="83"
-        cy="71"
-        rx="4.5"
-        ry="2.5"
-        fill="#FFD23F"
-        stroke="#13261B"
-        strokeWidth="1.5"
-      />
-
-      {/* Mouth by mood */}
-      {isCelebrate && (
-        <path
-          d="M49 71 C51 81, 69 81, 71 71 Z"
-          fill="#FF7A6B"
-          stroke="#13261B"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-      )}
+      {/* Center Professional Feature Graphic based on Variant */}
       {variant === 'wave' && (
-        <path
-          d="M50 72 C54 78, 66 78, 70 72"
-          stroke="#13261B"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-      )}
-      {isEmpty && (
-        <circle
-          cx="60"
-          cy="74"
-          r="3.5"
-          fill="#8ED1FC"
-          stroke="#13261B"
-          strokeWidth="2"
-        />
-      )}
-      {isLost && (
-        <path
-          d="M52 76 C56 72, 64 72, 68 76"
-          stroke="#13261B"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
+        <g>
+          {/* Circular Play / Wave Emblem */}
+          <circle
+            cx="60"
+            cy="70"
+            r="16"
+            fill="#FFFFFF"
+            stroke="#13261B"
+            strokeWidth="1.5"
+          />
+          {/* Emerald Play Triangle */}
+          <polygon
+            points="56,62 68,70 56,78"
+            fill="#0F7D43"
+          />
+          {/* Signal / Soundwave lines */}
+          <line x1="82" y1="65" x2="82" y2="75" stroke="#13261B" strokeWidth="2" strokeLinecap="round" />
+          <line x1="86" y1="62" x2="86" y2="78" stroke="#3DDC84" strokeWidth="2" strokeLinecap="round" />
+          <line x1="38" y1="65" x2="38" y2="75" stroke="#13261B" strokeWidth="2" strokeLinecap="round" />
+          <line x1="34" y1="62" x2="34" y2="78" stroke="#3DDC84" strokeWidth="2" strokeLinecap="round" />
+        </g>
       )}
 
-      {/* Accessory badge on top right */}
       {isCelebrate && (
-        <polygon
-          points="106,12 109,19 116,19 110,24 112,31 106,27 100,31 102,24 96,19 103,19"
-          fill="#FFD23F"
-          stroke="#13261B"
-          strokeWidth="2"
-        />
+        <g>
+          {/* Emerald Checkmark Badge */}
+          <circle
+            cx="60"
+            cy="70"
+            r="18"
+            fill="#3DDC84"
+            stroke="#13261B"
+            strokeWidth="1.75"
+          />
+          <path
+            d="M52 70 L57 75 L68 64"
+            fill="none"
+            stroke="#13261B"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Accent diamond sparkles */}
+          <polygon
+            points="98,22 101,29 108,32 101,35 98,42 95,35 88,32 95,29"
+            fill="#FFD23F"
+            stroke="#13261B"
+            strokeWidth="1.25"
+          />
+        </g>
       )}
+
+      {isEmpty && (
+        <g>
+          {/* Clean Film Reel Outline */}
+          <circle
+            cx="60"
+            cy="70"
+            r="16"
+            fill="#FFFFFF"
+            stroke="#13261B"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+          />
+          <circle cx="60" cy="70" r="5" fill="#8ED1FC" stroke="#13261B" strokeWidth="1.25" />
+          <line x1="48" y1="88" x2="72" y2="88" stroke="#13261B" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.4" />
+        </g>
+      )}
+
       {isLost && (
-        <text
-          x="98"
-          y="24"
-          fill="#13261B"
-          fontFamily="var(--font-display), cursive"
-          fontSize="20"
-        >
-          ?
-        </text>
+        <g>
+          {/* Clean Search / Missing Indicator */}
+          <circle
+            cx="58"
+            cy="68"
+            r="13"
+            fill="#FFFFFF"
+            stroke="#13261B"
+            strokeWidth="1.75"
+          />
+          <line
+            x1="67"
+            y1="77"
+            x2="75"
+            y2="85"
+            stroke="#13261B"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
+          <text
+            x="54"
+            y="73"
+            fill="#13261B"
+            fontFamily="var(--font-display), sans-serif"
+            fontWeight="bold"
+            fontSize="14"
+          >
+            ?
+          </text>
+        </g>
       )}
     </svg>
   );
@@ -284,7 +246,7 @@ export function ConfettiBurst({ active }: { active: boolean }) {
               '--rot': p.rot,
             } as React.CSSProperties
           }
-          className="confetti-piece absolute h-3 w-3 rounded-sm border-2 border-ink"
+          className="confetti-piece absolute h-2.5 w-2.5 rounded-full border border-border"
         />
       ))}
     </span>

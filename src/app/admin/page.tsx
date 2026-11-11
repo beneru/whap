@@ -203,15 +203,15 @@ export default function AdminConsolePage() {
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
-          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-semibold text-ink shadow-sm">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-coral" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -219,7 +219,7 @@ export default function AdminConsolePage() {
       {/* TAB 1: DISPUTES */}
       {activeTab === 'disputes' && (
         <div className="space-y-4">
-          <h2 className="font-display text-2xl text-ink">
+          <h2 className="font-display text-2xl font-bold text-ink">
             Dispute Queue ({db.disputes.length})
           </h2>
           {db.disputes.map((disp) => {
@@ -231,12 +231,12 @@ export default function AdminConsolePage() {
 
             return (
               <div key={disp.id} className="card-sticker p-6 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
                   <div>
-                    <span className="text-xs font-extrabold uppercase text-forest">
+                    <span className="text-xs font-bold uppercase tracking-wider text-forest">
                       Clip: {sub?.file_name} · Opened by @{editor?.username}
                     </span>
-                    <h3 className="text-lg font-extrabold text-ink">
+                    <h3 className="text-lg font-bold text-ink">
                       {disp.reason}
                     </h3>
                   </div>
@@ -244,30 +244,30 @@ export default function AdminConsolePage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs tabular-nums">
-                  <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                    <span className="font-bold text-muted">
+                  <div className="rounded-xl border border-border bg-mint/50 p-3">
+                    <span className="font-medium text-muted">
                       Snapshot Views Logged
                     </span>
-                    <p className="font-display text-xl text-ink">
+                    <p className="font-display text-xl font-bold text-ink">
                       {(snap?.views || 0).toLocaleString()}
                     </p>
                   </div>
-                  <div className="rounded-btn border-2 border-ink bg-sun p-3">
-                    <span className="font-extrabold text-ink">
+                  <div className="rounded-xl border border-sun/50 bg-sun/20 p-3">
+                    <span className="font-bold text-ink">
                       Editor Claimed Views
                     </span>
-                    <p className="font-display text-xl text-ink">
+                    <p className="font-display text-xl font-bold text-ink">
                       {disp.claimed_views.toLocaleString()}
                     </p>
                   </div>
-                  <div className="rounded-btn border-2 border-ink bg-mint p-3 flex items-center justify-between">
-                    <span className="font-bold text-ink">Screenshot Proof</span>
+                  <div className="rounded-xl border border-border bg-mint/50 p-3 flex items-center justify-between">
+                    <span className="font-medium text-ink">Screenshot Proof</span>
                     {disp.evidence_url && (
                       <a
                         href={disp.evidence_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 font-extrabold text-forest underline"
+                        className="inline-flex items-center gap-1 font-bold text-forest underline hover:text-emerald-700"
                       >
                         <span>Open</span>
                         <ArrowSquareOut weight="bold" className="h-3.5 w-3.5" />
@@ -277,7 +277,7 @@ export default function AdminConsolePage() {
                 </div>
 
                 {disp.status === 'open' ? (
-                  <div className="rounded-card border-2 border-ink bg-mint p-4 space-y-3">
+                  <div className="rounded-xl border border-border bg-mint/50 p-4 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label
@@ -381,7 +381,7 @@ export default function AdminConsolePage() {
                 return (
                   <div
                     key={pr.id}
-                    className="rounded-card border-2 border-ink bg-mint p-4 space-y-3"
+                    className="rounded-xl border border-border bg-mint/50 p-4 space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
@@ -577,7 +577,7 @@ export default function AdminConsolePage() {
                       </div>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="rounded-full border-2 border-ink bg-mint px-2.5 py-0.5 text-xs font-extrabold uppercase text-ink">
+                      <span className="rounded-full border border-border bg-mint px-2.5 py-0.5 text-xs font-semibold uppercase text-ink">
                         {u.role}
                       </span>
                     </td>

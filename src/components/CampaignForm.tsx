@@ -159,7 +159,7 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
   return (
     <form onSubmit={handleSubmit} className="card-sticker p-6 space-y-6">
       {errorMsg && (
-        <div className="flex items-start gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink">
+        <div className="flex items-start gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-bold text-ink">
           <WarningCircle weight="bold" className="h-5 w-5 shrink-0 mt-0.5" />
           <span>{errorMsg}</span>
         </div>

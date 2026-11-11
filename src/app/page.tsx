@@ -87,26 +87,26 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Right Column: Clappy + Interactive Pay Estimator Sticker Card */}
+          {/* Right Column: Interactive Pay Estimator Card */}
           <div className="lg:col-span-5">
             <div className="card-sticker bg-paper p-6 space-y-4">
-              <div className="flex items-center justify-between border-b-2 border-ink pb-3">
+              <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
-                  <span className="text-xs font-extrabold uppercase text-forest">
+                  <span className="text-xs font-bold uppercase tracking-wider text-forest">
                     Quick Pay Math
                   </span>
-                  <h2 className="font-display text-2xl text-ink">
+                  <h2 className="font-display text-2xl font-bold text-ink">
                     See What a Clip Pays
                   </h2>
                 </div>
-                <ClappyMascot variant="wave" size={68} />
+                <ClappyMascot variant="wave" size={60} />
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <div className="mb-1 flex justify-between text-xs font-extrabold text-ink">
-                    <label htmlFor="hero-sim-views">Views in 30 days</label>
-                    <span className="tabular-nums">
+                  <div className="mb-1 flex justify-between text-xs font-semibold text-ink">
+                    <label htmlFor="hero-sim-views" className="text-muted">Views in 30 days</label>
+                    <span className="tabular-nums font-bold text-ink">
                       {simViews.toLocaleString()} views
                     </span>
                   </div>
@@ -118,7 +118,7 @@ export default function LandingPage() {
                     step={1000}
                     value={simViews}
                     onChange={(e) => setSimViews(Number(e.target.value))}
-                    className="w-full accent-forest"
+                    className="w-full accent-forest cursor-pointer"
                   />
                 </div>
 
@@ -126,7 +126,7 @@ export default function LandingPage() {
                   <div>
                     <label
                       htmlFor="hero-sim-rate"
-                      className="mb-1 block text-xs font-extrabold text-ink"
+                      className="mb-1 block text-xs font-semibold text-muted"
                     >
                       Rate per 1K views ($)
                     </label>
@@ -144,7 +144,7 @@ export default function LandingPage() {
                   <div>
                     <label
                       htmlFor="hero-sim-base"
-                      className="mb-1 block text-xs font-extrabold text-ink"
+                      className="mb-1 block text-xs font-semibold text-muted"
                     >
                       Base fee on pick ($)
                     </label>
@@ -162,17 +162,17 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="rounded-btn border-2 border-ink bg-sprout p-4 flex items-center justify-between shadow-btn">
+              <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 flex items-center justify-between">
                 <div>
-                  <span className="block text-xs font-extrabold uppercase text-ink">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-forest">
                     Your Clip Pay
                   </span>
-                  <span className="text-xs font-bold text-ink">
+                  <span className="text-xs font-medium text-muted">
                     ${simBaseDollars.toFixed(2)} base + ${simViewBonus.toFixed(2)} view
                     pay
                   </span>
                 </div>
-                <span className="font-display text-3xl text-ink tabular-nums">
+                <span className="font-display text-3xl font-bold text-ink tabular-nums">
                   ${simTotal.toFixed(2)}
                 </span>
               </div>
@@ -181,17 +181,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3-Step Sticker Flow */}
+      {/* 3-Step Flow */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl sm:text-3xl text-ink">
+        <h2 className="font-display text-2xl sm:text-3xl font-bold text-ink">
           How whap Works
         </h2>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           <div className="card-sticker p-6 space-y-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-btn border-2 border-ink bg-sky shadow-btn">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-sky/20 text-ink shadow-sm">
               <UploadSimple weight="bold" className="h-6 w-6 text-ink" />
             </div>
-            <h3 className="text-lg font-extrabold text-ink">
+            <h3 className="text-lg font-bold text-ink">
               1. Pick a brief &amp; send your cut
             </h3>
             <p className="text-sm text-muted">
@@ -201,10 +201,10 @@ export default function LandingPage() {
           </div>
 
           <div className="card-sticker p-6 space-y-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-btn border-2 border-ink bg-sun shadow-btn">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-sun/30 text-ink shadow-sm">
               <Broadcast weight="bold" className="h-6 w-6 text-ink" />
             </div>
-            <h3 className="text-lg font-extrabold text-ink">
+            <h3 className="text-lg font-bold text-ink">
               2. Page owner picks &amp; posts in 72h
             </h3>
             <p className="text-sm text-muted">
@@ -214,10 +214,10 @@ export default function LandingPage() {
           </div>
 
           <div className="card-sticker p-6 space-y-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-btn border-2 border-ink bg-sprout shadow-btn">
-              <Coins weight="bold" className="h-6 w-6 text-ink" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-sprout/20 text-ink shadow-sm">
+              <Coins weight="bold" className="h-6 w-6 text-forest" />
             </div>
-            <h3 className="text-lg font-extrabold text-ink">
+            <h3 className="text-lg font-bold text-ink">
               3. Views are logged &amp; you cash out
             </h3>
             <p className="text-sm text-muted">
@@ -232,7 +232,7 @@ export default function LandingPage() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl sm:text-3xl text-ink">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-ink">
               Open Clipping Campaigns
             </h2>
             <p className="text-sm text-muted">
@@ -263,9 +263,9 @@ export default function LandingPage() {
       {/* Bottom Callout */}
       <section className="card-sticker bg-mint p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <ClappyMascot variant="celebrate" size={84} className="shrink-0" />
+          <ClappyMascot variant="celebrate" size={72} className="shrink-0" />
           <div className="space-y-1">
-            <h2 className="font-display text-2xl text-ink">
+            <h2 className="font-display text-2xl font-bold text-ink">
               Ready to send your first clip?
             </h2>
             <p className="text-sm text-muted">

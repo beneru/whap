@@ -56,8 +56,8 @@ export default function EditorProfilePage() {
       </div>
 
       {savedToast && (
-        <div className="flex items-center gap-2 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5" />
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 text-forest" />
           <span>Profile updated!</span>
         </div>
       )}

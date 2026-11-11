@@ -106,18 +106,18 @@ export default function StyleguidePage() {
           <div className="space-y-2">
             <span className="chip-sticker bg-sprout text-ink">
               <Sparkle weight="bold" className="h-3.5 w-3.5" />
-              <span>Sticker Sheet Design System</span>
+              <span>Modern Professional Design System</span>
             </span>
-            <h1 className="font-display text-3xl sm:text-4xl text-ink">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink">
               whap Visual Styleguide
             </h1>
             <p className="max-w-2xl text-base text-muted">
-              Friendly, cartoony, white and green. Thick 2px ink outlines, flat colors,
-              hard offset shadows, and chunky rounded shapes. Editors feel welcome;
-              account holders stay organized.
+              High-craft white and green creator marketplace aesthetic. Clean 1px structural borders,
+              subtle elevation, and refined Bricolage Grotesque display typography paired with Gabarito.
+              Professional for page owners, welcoming for video editors.
             </p>
           </div>
-          <ClappyMascot variant="wave" size={110} className="shrink-0" />
+          <ClappyMascot variant="wave" size={100} className="shrink-0" />
         </div>
       </section>
 
@@ -132,10 +132,10 @@ export default function StyleguidePage() {
           {COLOR_SWATCHES.map((swatch) => (
             <div key={swatch.name} className="card-sticker overflow-hidden">
               <div
-                className={`flex h-24 items-end justify-between border-b-2 border-ink p-4 ${swatch.bgClass} ${swatch.textClass}`}
+                className={`flex h-24 items-end justify-between border-b border-border p-4 ${swatch.bgClass} ${swatch.textClass}`}
               >
-                <span className="font-display text-xl">{swatch.name}</span>
-                <span className="rounded-full border-2 border-ink bg-paper px-2.5 py-0.5 text-xs font-extrabold text-ink tabular-nums">
+                <span className="font-display text-xl font-bold">{swatch.name}</span>
+                <span className="rounded-full border border-border bg-paper px-2.5 py-0.5 text-xs font-bold text-ink tabular-nums">
                   {swatch.hex}
                 </span>
               </div>
@@ -149,42 +149,42 @@ export default function StyleguidePage() {
 
       {/* 2. Typography */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl text-ink">2. Typography</h2>
+        <h2 className="font-display text-2xl font-bold text-ink">2. Typography</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="card-sticker p-6 space-y-4">
             <span className="chip-sticker bg-sprout text-ink">
-              Display: Bagel Fat One (Never below 20px)
+              Display: Bricolage Grotesque (600 / 700 / 800)
             </span>
-            <div className="space-y-3 border-t-2 border-ink pt-4">
+            <div className="space-y-3 border-t border-border pt-4">
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   Hero / 40px
                 </span>
-                <p className="font-display text-[40px] leading-tight text-ink">
+                <p className="font-display text-[40px] font-bold leading-tight text-ink">
                   Your clip got picked!
                 </p>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   H1 / 32px
                 </span>
-                <p className="font-display text-[32px] leading-tight text-ink">
+                <p className="font-display text-[32px] font-bold leading-tight text-ink">
                   Open Clipping Campaigns
                 </p>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   H2 / 24px
                 </span>
-                <p className="font-display text-[24px] leading-tight text-ink">
+                <p className="font-display text-[24px] font-bold leading-tight text-ink">
                   Posted Clips &amp; View Counts
                 </p>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
-                  Minimum Display / 20px (Earnings &amp; Sticker Rates)
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                  Display Accent / 20px (Earnings &amp; Rates)
                 </span>
-                <p className="font-display text-[20px] leading-tight text-forest">
+                <p className="font-display text-[20px] font-bold leading-tight text-forest">
                   $1.50 per 1K views · 48,200 views · $65.00 earned
                 </p>
               </div>
@@ -193,19 +193,19 @@ export default function StyleguidePage() {
 
           <div className="card-sticker p-6 space-y-4">
             <span className="chip-sticker bg-mint text-ink">
-              UI &amp; Body: Gabarito (400 / 700 / 800)
+              UI &amp; Body: Gabarito (400 / 500 / 700 / 800)
             </span>
-            <div className="space-y-3 border-t-2 border-ink pt-4">
+            <div className="space-y-3 border-t border-border pt-4">
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   H3 &amp; Section Labels / Gabarito 800
                 </span>
-                <h3 className="text-lg font-extrabold text-ink">
+                <h3 className="text-lg font-bold text-ink">
                   3 days left to submit · Paste the link where you posted it
                 </h3>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   Buttons / Gabarito 700
                 </span>
                 <p className="text-base font-bold text-ink">
@@ -213,7 +213,7 @@ export default function StyleguidePage() {
                 </p>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   Body Copy / Gabarito 400
                 </span>
                 <p className="text-sm font-normal text-ink">
@@ -222,10 +222,10 @@ export default function StyleguidePage() {
                 </p>
               </div>
               <div>
-                <span className="text-xs font-extrabold uppercase text-muted">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">
                   Ledger &amp; Tables / Gabarito Tabular Numerals
                 </span>
-                <p className="text-sm font-extrabold tabular-nums text-ink">
+                <p className="text-sm font-bold tabular-nums text-ink">
                   +$29.75 | -$20.00 | 38,500 views | PHP 4,300.00
                 </p>
               </div>
@@ -236,13 +236,13 @@ export default function StyleguidePage() {
 
       {/* 3. Buttons & Confetti Motion */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl text-ink">
-          3. Sticker Buttons &amp; Motion
+        <h2 className="font-display text-2xl font-bold text-ink">
+          3. Tactile Buttons &amp; Motion
         </h2>
         <div className="card-sticker p-6 space-y-4">
           <p className="text-sm text-muted">
-            Min height 48px, 2px solid ink border, 12px radius, 3px hard offset shadow.
-            Hover lifts 1px; pressing pushes down 3px and drops the shadow to zero.
+            Min height 44px, 1px structural border, 12px radius, subtle ambient elevation.
+            Hover gently lifts 1px; active press translates 1px for instant tactile feedback.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <button
@@ -251,7 +251,7 @@ export default function StyleguidePage() {
               className="btn-sticker btn-primary"
             >
               <CheckCircle weight="bold" className="h-5 w-5" />
-              <span>Primary Button (Tap for Confetti!)</span>
+              <span>Primary Button (Tap for Confetti)</span>
               <ConfettiBurst active={confettiOn} />
             </button>
 
@@ -306,7 +306,7 @@ export default function StyleguidePage() {
             <span className="block text-sm font-extrabold text-ink">
               Network Drop / Error State
             </span>
-            <div className="flex items-start gap-3 rounded-btn border-2 border-ink bg-coral p-4 text-ink shadow-btn">
+            <div className="flex items-start gap-3 rounded-xl border border-coral/40 bg-coral/15 p-4 text-ink shadow-sm">
               <WarningCircle weight="bold" className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-extrabold">
@@ -392,37 +392,37 @@ export default function StyleguidePage() {
         </div>
       </section>
 
-      {/* 8. Original Mascot & Empty State */}
+      {/* 8. Modern Creator Emblem & Empty State */}
       <section className="space-y-4">
-        <h2 className="font-display text-2xl text-ink">
-          8. Clappy Mascot &amp; Empty State
+        <h2 className="font-display text-2xl font-bold text-ink">
+          8. Brand Emblem &amp; Empty State
         </h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="card-sticker p-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className="flex flex-col items-center gap-2 rounded-btn border-2 border-ink bg-mint p-3">
-              <ClappyMascot variant="wave" size={84} />
-              <span className="text-xs font-extrabold text-ink">Wave (Onboarding)</span>
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-mint/40 p-3">
+              <ClappyMascot variant="wave" size={80} />
+              <span className="text-xs font-bold text-ink">Studio (Wave)</span>
             </div>
-            <div className="flex flex-col items-center gap-2 rounded-btn border-2 border-ink bg-mint p-3">
-              <ClappyMascot variant="celebrate" size={84} />
-              <span className="text-xs font-extrabold text-ink">
-                Celebrate (Picked!)
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-mint/40 p-3">
+              <ClappyMascot variant="celebrate" size={80} />
+              <span className="text-xs font-bold text-ink">
+                Verified (Picked)
               </span>
             </div>
-            <div className="flex flex-col items-center gap-2 rounded-btn border-2 border-ink bg-mint p-3">
-              <ClappyMascot variant="empty" size={84} />
-              <span className="text-xs font-extrabold text-ink">Empty Queue</span>
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-mint/40 p-3">
+              <ClappyMascot variant="empty" size={80} />
+              <span className="text-xs font-bold text-ink">Empty Queue</span>
             </div>
-            <div className="flex flex-col items-center gap-2 rounded-btn border-2 border-ink bg-mint p-3">
-              <ClappyMascot variant="lost" size={84} />
-              <span className="text-xs font-extrabold text-ink">404 Lost</span>
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-mint/40 p-3">
+              <ClappyMascot variant="lost" size={80} />
+              <span className="text-xs font-bold text-ink">404 Missing</span>
             </div>
           </div>
 
           <div className="card-sticker bg-mint p-6 flex flex-col items-center justify-center text-center space-y-3">
-            <ClappyMascot variant="empty" size={96} />
-            <h3 className="text-lg font-extrabold text-ink">
-              No clips waiting in the queue!
+            <ClappyMascot variant="empty" size={90} />
+            <h3 className="text-lg font-bold text-ink">
+              No clips waiting in the queue
             </h3>
             <p className="max-w-sm text-sm text-muted">
               You reviewed every clip for your pages. Take a breather or post a new

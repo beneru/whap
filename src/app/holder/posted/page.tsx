@@ -118,15 +118,15 @@ export default function PostedClipsAndViewsPage() {
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
-          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-semibold text-ink shadow-sm">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-coral" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -198,11 +198,11 @@ export default function PostedClipsAndViewsPage() {
 
                 {/* Metrics Strip */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                    <span className="text-xs font-bold text-muted">
+                  <div className="rounded-xl border border-border bg-mint/50 p-3">
+                    <span className="text-xs font-medium text-muted">
                       Locked Rate / 1K
                     </span>
-                    <p className="font-display text-xl text-ink tabular-nums">
+                    <p className="font-display text-xl font-bold text-ink tabular-nums">
                       {formatMoneyCents(
                         sub.locked_rate_per_1k_cents ??
                           camp?.rate_per_1k_cents ??
@@ -211,19 +211,19 @@ export default function PostedClipsAndViewsPage() {
                       )}
                     </p>
                   </div>
-                  <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                    <span className="text-xs font-bold text-muted">
+                  <div className="rounded-xl border border-border bg-mint/50 p-3">
+                    <span className="text-xs font-medium text-muted">
                       Counted Views
                     </span>
-                    <p className="font-display text-xl text-ink tabular-nums">
+                    <p className="font-display text-xl font-bold text-ink tabular-nums">
                       {sub.counted_views.toLocaleString()}
                     </p>
                   </div>
-                  <div className="rounded-btn border-2 border-ink bg-sprout p-3">
-                    <span className="text-xs font-extrabold text-ink">
+                  <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-3">
+                    <span className="text-xs font-bold text-forest">
                       Editor Earnings
                     </span>
-                    <p className="font-display text-xl text-ink tabular-nums">
+                    <p className="font-display text-xl font-bold text-ink tabular-nums">
                       {formatMoneyCents(
                         sub.net_earnings_cents,
                         camp?.currency || 'USD'
@@ -234,7 +234,7 @@ export default function PostedClipsAndViewsPage() {
 
                 {/* Case A: Clip is selected and needs Post URL within 72h */}
                 {!sub.posted_url ? (
-                  <div className="rounded-card border-2 border-ink bg-mint p-5 space-y-4">
+                  <div className="rounded-xl border border-border bg-mint/50 p-5 space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-extrabold text-ink">
                         Step 1: Post this clip on your page &amp; add the link
@@ -334,14 +334,14 @@ export default function PostedClipsAndViewsPage() {
                 ) : (
                   /* Case B: Clip is Posted Live -> Show Post Link, 30-day Window Bar & 7-day Snapshot Updater */
                   <div className="space-y-4">
-                    <div className="rounded-btn border-2 border-ink bg-mint p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <span className="font-extrabold text-ink">
+                    <div className="rounded-xl border border-border bg-mint/50 p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="font-bold text-ink">
                         Post URL:{' '}
                         <a
                           href={sub.posted_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-forest underline"
+                          className="text-forest underline hover:text-emerald-700"
                         >
                           {sub.posted_url}
                         </a>
@@ -357,11 +357,11 @@ export default function PostedClipsAndViewsPage() {
                       </span>
                     </div>
 
-                    {/* 30-Day View Tracking Window Progress Bar (12px tall, ink border, sprout fill) */}
+                    {/* 30-Day View Tracking Window Progress Bar */}
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-extrabold text-ink">
+                      <div className="flex justify-between text-xs font-semibold text-ink">
                         <span>{windowDays}-day view tracking window</span>
-                        <span className="tabular-nums">
+                        <span className="tabular-nums font-bold">
                           Day {elapsedDays} of {windowDays}
                         </span>
                       </div>
@@ -374,15 +374,15 @@ export default function PostedClipsAndViewsPage() {
                     </div>
 
                     {/* Log New 7-Day View Snapshot */}
-                    <div className="rounded-card border-2 border-ink bg-mint p-4 space-y-3">
-                      <h3 className="text-xs font-extrabold uppercase text-ink">
+                    <div className="rounded-xl border border-border bg-mint/50 p-4 space-y-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-ink">
                         Log 7-Day View Update + Screenshot Proof
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label
                             htmlFor={`snap-views-${sub.id}`}
-                            className="mb-1 block text-xs font-extrabold text-ink"
+                            className="mb-1 block text-xs font-semibold text-muted"
                           >
                             Updated view count
                           </label>
@@ -404,7 +404,7 @@ export default function PostedClipsAndViewsPage() {
                         <div className="sm:col-span-2">
                           <label
                             htmlFor={`snap-proof-${sub.id}`}
-                            className="mb-1 block text-xs font-extrabold text-ink"
+                            className="mb-1 block text-xs font-semibold text-muted"
                           >
                             Screenshot proof link
                           </label>
@@ -439,14 +439,14 @@ export default function PostedClipsAndViewsPage() {
 
                     {/* View Snapshots History */}
                     <div className="space-y-2">
-                      <h3 className="text-xs font-extrabold uppercase text-ink">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-ink">
                         View Snapshots ({snapshots.length})
                       </h3>
                       <div className="space-y-1.5">
                         {snapshots.map((snap) => (
                           <div
                             key={snap.id}
-                            className="flex flex-wrap items-center justify-between gap-2 rounded-btn border-2 border-ink bg-paper px-3.5 py-2.5 text-xs tabular-nums"
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-paper px-3.5 py-2.5 text-xs tabular-nums shadow-sm"
                           >
                             <div>
                               <span className="font-extrabold text-ink">

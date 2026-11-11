@@ -1,46 +1,46 @@
-# whap Visual Design System: Sticker Sheet / Flat Cartoon (White & Green)
+# whap Visual Design System: Modern Professional White & Green
 
 ## 1. Vibe & Core Aesthetic
-Friendly, cartoony, white and green. Think **sticker sheet / flat cartoon**: thick `2px` ink outlines, flat solid colors, hard offset shadows with zero blur, chunky rounded shapes (`12px` buttons/inputs, `20px` cards, full pills for chips/avatars). Playful and welcoming for video editors; structured and calm for account holders and money screens.
+High-craft, modern, and professional white-and-green creator marketplace aesthetic (inspired by Linear, Whop, and Figma). Clean 1px structural borders, crisp white canvas, subtle mint wells, vibrant emerald highlights, and refined typography. Professional and trustworthy for account holders; clean and welcoming for video editors.
 
-## 2. Hard Bans (Zero Tolerance)
-- No glassmorphism (`backdrop-blur`, frosted panels, or translucent `rgba`/`/10` fills).
-- No gradients, glows, or neon effects.
-- No soft blurry drop shadows (only hard offset `4px 4px 0 #13261B` or `3px 3px 0 #13261B`).
-- No purple or indigo anywhere. Light mode only for MVP.
-- No stock photos or 3D renders.
-- No banned fonts (`Inter`, `Roboto`, `Poppins`, `Montserrat`, `Open Sans`, `Nunito`, `DM Sans`, `Plus Jakarta Sans`, `Manrope`, `Outfit`, `Space Grotesk`, `Geist`, `system-ui`).
-- No Lucide icons (Phosphor Icons `weight="bold"` only).
-- No banned copy words (`seamless`, `unlock`, `empower`, `elevate`, `revolutionize`, `leverage`, `effortless`).
+## 2. Design Guardrails
+- Light mode first: 70% crisp white (#FFFFFF), 20% emerald and mint tones, 10% status accents.
+- 1px structural borders (`border-border` / `border-border-hover`) replacing comic-book 2px black outlines.
+- Subtle ambient elevation shadows replacing cartoon 4px black offset drop shadows.
+- No blurry glassmorphism or distracting neon glows.
+- Clean vector creator emblem graphics (film slate, playback wave, verified check) replacing cartoon mascots with goofy eyes and boots.
+- Icons: Phosphor Icons (`weight="bold"`).
+- Copy: Direct, human, clear. Banned words: seamless, unlock, empower, elevate, revolutionize, leverage, effortless.
 
-## 3. Typography (`next/font/google` only)
-- **Display (`Bagel Fat One`)**: Used for H1, H2, hero lines, sticker rate badges, and big earnings/view numbers. **Never below 20px.**
+## 3. Typography (Loaded via `next/font/google`)
+- **Display (`Bricolage Grotesque`)**:
+  - Weights: `600` (SemiBold), `700` (Bold), `800` (ExtraBold)
+  - Used for H1, H2, hero headlines, rates, and financial metrics.
 - **UI & Body (`Gabarito`)**:
-  - Buttons: `700` (`font-bold`)
-  - H3 and smaller headings / labels: `800` (`font-extrabold`)
-  - Body copy: `400` (`font-normal`)
-  - Ledgers & tables: `Gabarito` with `font-variant-numeric: tabular-nums` (`tabular-nums`)
+  - Weights: `400` (Regular), `500` (Medium), `700` (Bold), `800` (ExtraBold)
+  - Buttons: `700`
+  - Body copy: `400` and `500`
+  - Ledgers and tables: `Gabarito` with `font-variant-numeric: tabular-nums`
 
-## 4. Color Tokens (`:root` + Tailwind)
+## 4. Color Hierarchy
 | Token | Hex | Role | Text Rule |
 |---|---|---|---|
-| `--paper` | `#FFFFFF` | Page and card background (70% ratio) | `--ink` (`#13261B`) |
-| `--mint` | `#EEF9F1` | Section backgrounds, hovered rows | `--ink` (`#13261B`) |
-| `--sprout` | `#3DDC84` | Primary buttons, highlights, selected state | `--ink` (`#13261B`) ONLY (never white) |
-| `--forest` | `#0F7D43` | Links, active nav, `posted` badge, accent text on white | `#FFFFFF` (`--paper`) allowed on `--forest` fill |
-| `--ink` | `#13261B` | All text, `2px` borders, hard offset shadows | Never pure `#000000` |
-| `--muted` | `#5B6B61` | Secondary text | WCAG AA on `--paper` and `--mint` |
-| `--sun` | `#FFD23F` | In review / revision requested | `--ink` (`#13261B`) |
-| `--sky` | `#8ED1FC` | Submitted state | `--ink` (`#13261B`) |
-| `--coral` | `#FF7A6B` | Rejected state, danger buttons, errors | `--ink` (`#13261B`) ONLY |
+| `--paper` | `#FFFFFF` | Page and card background (70% ratio) | `--ink` (`#0F1E15`) |
+| `--mint` | `#F4FAF5` | Section backgrounds, subtle wells, hovered rows | `--ink` (`#0F1E15`) |
+| `--sprout` | `#34D399` | Primary button accents, highlights, selected states | `--ink` (`#0F1E15`) (high contrast) |
+| `--forest` | `#0D5A32` | Primary brand authority, links, active state accents | `#FFFFFF` (`--paper`) on forest fill |
+| `--ink` | `#0F1E15` | Body text, headings, dark borders | Never pure `#000000` |
+| `--muted` | `#52665A` | Secondary text and helper copy | Accessible contrast ratio |
+| `--sun` | `#F59E0B` | In review / revision requested | Deep amber text |
+| `--sky` | `#0284C7` | Submitted status chip | Deep sky text |
+| `--coral` | `#EF4444` | Rejected state, danger buttons, error alerts | High-contrast text |
 
 ## 5. Shape, Borders, Shadows & Motion
-- **Borders**: `2px solid var(--ink)` (`#13261B`) on all cards, buttons, inputs, chips, and progress bars.
-- **Radius**: `12px` for buttons and inputs, `20px` for cards, `9999px` for chips and avatars.
-- **Hard Shadows**:
-  - Cards: `4px 4px 0 #13261B`
-  - Buttons: `3px 3px 0 #13261B`
-  - Hover (desktop): `transform: translate(-1px, -1px)` and shadow grows to `4px 4px 0 #13261B`
-  - Active press: `transform: translate(3px, 3px)` and shadow drops to `0 0 0 #13261B`
-- **Spring Easing**: `150ms` to `250ms` with `cubic-bezier(.34,1.56,.64,1)`. Respects `prefers-reduced-motion`.
-- **Money Screens**: Calm layout (no wiggle, no confetti on tables) with clear `Bagel Fat One` totals (`>= 20px`) and `Gabarito` `tabular-nums` rows.
+- **Borders**: Refined 1px solid structural borders (`#E2ECE5` default, `#C6DCCE` hover/card).
+- **Radius**: `12px` for buttons and inputs, `16px` for cards, `9999px` for chips and badges.
+- **Elevation**:
+  - Default card shadow: `0 1px 3px rgba(15, 30, 21, 0.04), 0 4px 12px rgba(15, 30, 21, 0.03)`
+  - Hover elevation: `0 6px 18px rgba(15, 30, 21, 0.06)` with smooth translateY(-1px)
+  - Active button press: translateY(1px) with tactile response
+- **Easing**: 150ms to 200ms smooth cubic-bezier transitions. Respects `prefers-reduced-motion`.
+- **Financial Screens**: Calm layout with clear `Bricolage Grotesque` totals and `Gabarito` tabular numbers.

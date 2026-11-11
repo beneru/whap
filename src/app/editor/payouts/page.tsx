@@ -14,7 +14,7 @@ import { PayoutMethodType } from '@/lib/types';
 /**
  * Money Screen Rule:
  * Same sticker-sheet style (2px ink borders, hard shadows, flat colors),
- * but calm: no wiggle, no confetti, big clear numbers (Bagel Fat One >= 20px,
+ * but calm: no wiggle, no confetti, big clear numbers (Bricolage Grotesque >= 20px,
  * Gabarito tabular-nums for ledger rows). Trust beats fun here.
  */
 export default function EditorPayoutsPage() {
@@ -121,15 +121,15 @@ export default function EditorPayoutsPage() {
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
-          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-semibold text-ink shadow-sm">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-coral" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -182,7 +182,7 @@ export default function EditorPayoutsPage() {
           </h2>
 
           {wallet.totalEarnedCents === 0 ? (
-            <div className="rounded-btn border-2 border-ink bg-mint p-4 text-sm font-bold text-ink">
+            <div className="rounded-xl border border-border bg-mint/50 p-4 text-sm font-medium text-ink">
               You do not need to fill out payout details yet. This form opens as
               soon as your first clip earns money.
             </div>
@@ -360,25 +360,25 @@ export default function EditorPayoutsPage() {
           </form>
 
           {myPayoutRequests.length > 0 && (
-            <div className="border-t-2 border-ink pt-4 space-y-2">
-              <h3 className="text-xs font-extrabold uppercase text-ink">
+            <div className="border-t border-border pt-4 space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink">
                 Your Payout Requests
               </h3>
               {myPayoutRequests.map((pr) => (
                 <div
                   key={pr.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-btn border-2 border-ink bg-mint p-3 text-xs tabular-nums"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-mint/50 p-3 text-xs tabular-nums"
                 >
                   <div>
-                    <span className="font-extrabold text-ink">
+                    <span className="font-bold text-ink">
                       {formatMoneyCents(pr.amount_cents, pr.currency)}
                     </span>
-                    <span className="ml-2 font-bold text-muted">
+                    <span className="ml-2 font-medium text-muted">
                       ({pr.payout_method_type.toUpperCase()} ·{' '}
                       {pr.payout_method_summary})
                     </span>
                     {pr.reference_number && (
-                      <span className="block text-[11px] font-bold text-forest">
+                      <span className="block text-[11px] font-medium text-forest">
                         Ref: {pr.reference_number}
                       </span>
                     )}
@@ -393,13 +393,13 @@ export default function EditorPayoutsPage() {
 
       {/* Full Financial Ledger Table */}
       <div className="card-sticker p-6 space-y-4">
-        <h2 className="font-display text-2xl text-ink">
+        <h2 className="font-display text-2xl font-bold text-ink">
           Full Account Ledger
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm tabular-nums">
             <thead>
-              <tr className="border-b-2 border-ink text-xs font-extrabold uppercase text-muted">
+              <tr className="border-b border-border text-xs font-bold uppercase tracking-wider text-muted">
                 <th className="py-2.5 pr-4">Date</th>
                 <th className="py-2.5 pr-4">Type</th>
                 <th className="py-2.5 pr-4">Description</th>
@@ -407,14 +407,14 @@ export default function EditorPayoutsPage() {
                 <th className="py-2.5 text-right">Balance After</th>
               </tr>
             </thead>
-            <tbody className="divide-y-2 divide-ink/20">
+            <tbody className="divide-y divide-border/60">
               {myLedger.map((entry) => (
-                <tr key={entry.id} className="hover:bg-mint">
-                  <td className="py-3 pr-4 text-xs font-bold text-muted">
+                <tr key={entry.id} className="hover:bg-mint/60 transition-colors">
+                  <td className="py-3 pr-4 text-xs font-medium text-muted">
                     {new Date(entry.created_at).toLocaleDateString()}
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="rounded-full border-2 border-ink bg-mint px-2.5 py-0.5 text-xs font-extrabold uppercase text-ink">
+                    <span className="rounded-full border border-border bg-mint px-2.5 py-0.5 text-xs font-semibold uppercase text-ink">
                       {entry.entry_type}
                     </span>
                   </td>

@@ -175,7 +175,7 @@ export default function EditorDashboardPage() {
         </div>
 
         {mySubmissions.length === 0 ? (
-          <div className="rounded-card border-2 border-ink bg-mint p-8 text-center space-y-3">
+          <div className="rounded-xl border border-border bg-mint/50 p-8 text-center space-y-3">
             <div className="flex justify-center">
               <ClappyMascot variant="empty" size={84} />
             </div>

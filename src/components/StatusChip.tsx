@@ -45,37 +45,37 @@ const SUBMISSION_CONFIG: Record<
 > = {
   submitted: {
     label: 'Submitted',
-    classes: 'bg-sky text-ink',
+    classes: 'bg-sky-50 text-sky-700 border-sky-200',
     Icon: PaperPlaneTilt,
   },
   revision_requested: {
     label: 'Needs Revision',
-    classes: 'bg-sun text-ink',
+    classes: 'bg-amber-50 text-amber-800 border-amber-200',
     Icon: NotePencil,
   },
   resubmitted: {
     label: 'Resubmitted',
-    classes: 'bg-sun text-ink',
+    classes: 'bg-amber-50 text-amber-800 border-amber-200',
     Icon: ArrowsClockwise,
   },
   selected: {
     label: 'Selected',
-    classes: 'bg-sprout text-ink',
+    classes: 'bg-emerald-50 text-emerald-800 border-emerald-300',
     Icon: CheckCircle,
   },
   posted: {
     label: 'Posted Live',
-    classes: 'bg-forest text-paper',
+    classes: 'bg-forest text-white border-forest',
     Icon: Broadcast,
   },
   paid: {
     label: 'Paid',
-    classes: 'bg-sprout text-ink',
+    classes: 'bg-emerald-100 text-emerald-900 border-emerald-300',
     Icon: Coins,
   },
   rejected: {
     label: 'Rejected',
-    classes: 'bg-coral text-ink',
+    classes: 'bg-rose-50 text-rose-700 border-rose-200',
     Icon: XCircle,
   },
 };
@@ -97,22 +97,22 @@ const CAMPAIGN_CONFIG: Record<
 > = {
   draft: {
     label: 'Draft',
-    classes: 'bg-mint text-ink',
+    classes: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     Icon: NotePencil,
   },
   open: {
     label: 'Open',
-    classes: 'bg-sprout text-ink',
+    classes: 'bg-emerald-50 text-emerald-800 border-emerald-300',
     Icon: PlayCircle,
   },
   closed: {
     label: 'Closed',
-    classes: 'bg-sun text-ink',
+    classes: 'bg-amber-50 text-amber-800 border-amber-200',
     Icon: LockKey,
   },
   completed: {
     label: 'Completed',
-    classes: 'bg-forest text-paper',
+    classes: 'bg-zinc-100 text-zinc-700 border-zinc-200',
     Icon: CheckCircle,
   },
 };
@@ -145,8 +145,8 @@ export function PlatformBadge({ platform }: { platform: PlatformType }) {
   };
   const Icon = cfg.Icon;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-mint px-2.5 py-0.5 text-xs font-extrabold text-ink">
-      <Icon weight="bold" className="h-3.5 w-3.5 shrink-0 text-ink" />
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-mint px-2.5 py-0.5 text-xs font-semibold text-ink">
+      <Icon weight="bold" className="h-3.5 w-3.5 shrink-0 text-forest" />
       <span>{cfg.label}</span>
     </span>
   );
@@ -155,7 +155,7 @@ export function PlatformBadge({ platform }: { platform: PlatformType }) {
 export function PayoutStatusChip({ status }: { status: PayoutStatus }) {
   if (status === 'paid') {
     return (
-      <span className="chip-sticker bg-sprout text-ink">
+      <span className="chip-sticker bg-emerald-50 text-emerald-800 border-emerald-300">
         <Coins weight="bold" className="h-3.5 w-3.5 shrink-0" />
         <span>Paid</span>
       </span>
@@ -163,14 +163,14 @@ export function PayoutStatusChip({ status }: { status: PayoutStatus }) {
   }
   if (status === 'rejected') {
     return (
-      <span className="chip-sticker bg-coral text-ink">
+      <span className="chip-sticker bg-rose-50 text-rose-700 border-rose-200">
         <XCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
         <span>Rejected</span>
       </span>
     );
   }
   return (
-    <span className="chip-sticker bg-sun text-ink">
+    <span className="chip-sticker bg-amber-50 text-amber-800 border-amber-200">
       <Clock weight="bold" className="h-3.5 w-3.5 shrink-0" />
       <span>Requested</span>
     </span>
@@ -180,7 +180,7 @@ export function PayoutStatusChip({ status }: { status: PayoutStatus }) {
 export function DisputeStatusChip({ status }: { status: DisputeStatus }) {
   if (status === 'open') {
     return (
-      <span className="chip-sticker bg-sun text-ink">
+      <span className="chip-sticker bg-amber-50 text-amber-800 border-amber-200">
         <WarningCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
         <span>Open Dispute</span>
       </span>
@@ -188,14 +188,14 @@ export function DisputeStatusChip({ status }: { status: DisputeStatus }) {
   }
   if (status === 'resolved_overturned') {
     return (
-      <span className="chip-sticker bg-sprout text-ink">
+      <span className="chip-sticker bg-emerald-50 text-emerald-800 border-emerald-300">
         <CheckCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
         <span>Updated Views</span>
       </span>
     );
   }
   return (
-    <span className="chip-sticker bg-mint text-ink">
+    <span className="chip-sticker bg-zinc-100 text-zinc-700 border-zinc-200">
       <CheckCircle weight="bold" className="h-3.5 w-3.5 shrink-0" />
       <span>Kept Original</span>
     </span>

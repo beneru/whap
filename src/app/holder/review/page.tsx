@@ -95,7 +95,7 @@ export default function ReviewQueuePage() {
               <ArrowLeft weight="bold" className="h-4 w-4" />
               <span>Prev</span>
             </button>
-            <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-extrabold text-ink tabular-nums">
+            <span className="rounded-full border border-border bg-mint px-3 py-1 text-xs font-bold text-ink tabular-nums">
               {safeIndex + 1} / {queue.length}
             </span>
             <button
@@ -114,9 +114,9 @@ export default function ReviewQueuePage() {
       </div>
 
       {bannerMsg && (
-        <div className="card-sticker bg-sprout p-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 text-sm font-extrabold text-ink">
-            <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="card-sticker bg-sprout/20 border-emerald-500/30 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-sm font-bold text-ink">
+            <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
             <span>{bannerMsg}</span>
             <ConfettiBurst active={selectedConfetti} />
           </div>
@@ -131,7 +131,7 @@ export default function ReviewQueuePage() {
       )}
 
       {errorMsg && (
-        <div className="rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
+        <div className="rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-bold text-ink shadow-sm">
           {errorMsg}
         </div>
       )}
@@ -163,12 +163,12 @@ export default function ReviewQueuePage() {
           return (
             <div className="card-sticker p-5 sm:p-6 space-y-5">
               {/* Top Info Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
                 <div>
-                  <span className="text-xs font-extrabold uppercase text-forest">
+                  <span className="text-xs font-bold uppercase tracking-wider text-forest">
                     {camp?.title}
                   </span>
-                  <h2 className="font-display text-2xl text-ink">
+                  <h2 className="font-display text-2xl font-bold text-ink">
                     {currentClip.file_name} · by @{editor?.username}
                   </h2>
                 </div>
@@ -189,9 +189,9 @@ export default function ReviewQueuePage() {
 
               {/* Clip Metadata & Rate Lock Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                  <span className="font-bold text-muted">Rate if picked</span>
-                  <p className="mt-0.5 font-display text-xl text-ink tabular-nums">
+                <div className="rounded-xl border border-border bg-mint/50 p-3">
+                  <span className="font-medium text-muted">Rate if picked</span>
+                  <p className="mt-0.5 font-display text-xl font-bold text-ink tabular-nums">
                     {formatMoneyCents(
                       camp?.rate_per_1k_cents || 0,
                       camp?.currency || 'USD'
@@ -199,26 +199,26 @@ export default function ReviewQueuePage() {
                     / 1K
                   </p>
                 </div>
-                <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                  <span className="font-bold text-muted">Base fee on pick</span>
-                  <p className="mt-0.5 font-display text-xl text-ink tabular-nums">
+                <div className="rounded-xl border border-border bg-mint/50 p-3">
+                  <span className="font-medium text-muted">Base fee on pick</span>
+                  <p className="mt-0.5 font-display text-xl font-bold text-ink tabular-nums">
                     {formatMoneyCents(
                       camp?.base_fee_cents || 0,
                       camp?.currency || 'USD'
                     )}
                   </p>
                 </div>
-                <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                  <span className="font-bold text-muted">Posting SLA</span>
-                  <p className="mt-0.5 font-display text-xl text-ink tabular-nums">
+                <div className="rounded-xl border border-border bg-mint/50 p-3">
+                  <span className="font-medium text-muted">Posting SLA</span>
+                  <p className="mt-0.5 font-display text-xl font-bold text-ink tabular-nums">
                     {camp?.post_deadline_hours || 72} hours
                   </p>
                 </div>
               </div>
 
               {currentClip.notes && (
-                <div className="rounded-btn border-2 border-ink bg-mint p-3.5 text-xs">
-                  <span className="font-extrabold text-ink">Editor note: </span>
+                <div className="rounded-xl border border-border bg-mint/50 p-3.5 text-xs">
+                  <span className="font-bold text-ink">Editor note: </span>
                   <span className="text-ink">{currentClip.notes}</span>
                 </div>
               )}

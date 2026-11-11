@@ -42,12 +42,12 @@ export function ProtectedVideoPlayer({
       }}
       className="card-sticker overflow-hidden bg-mint"
     >
-      {/* Top Sticker Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink bg-paper px-4 py-2.5 text-xs">
+      {/* Top Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-paper px-4 py-2.5 text-xs">
         <div className="flex items-center gap-2">
-          <FilmSlate weight="bold" className="h-4 w-4 text-ink" />
-          <span className="font-extrabold text-ink">{safeFileName}</span>
-          <span className="rounded-full border-2 border-ink bg-mint px-2 py-0.5 font-extrabold text-ink tabular-nums">
+          <FilmSlate weight="bold" className="h-4 w-4 text-forest" />
+          <span className="font-bold text-ink">{safeFileName}</span>
+          <span className="rounded-full border border-border bg-mint px-2 py-0.5 font-semibold text-ink tabular-nums">
             {aspectRatio} · {durationSec}s
           </span>
         </div>
@@ -66,7 +66,7 @@ export function ProtectedVideoPlayer({
       </div>
 
       {/* 9:16 Video Preview Canvas (Never autoplays to save mobile data) */}
-      <div className="relative mx-auto flex aspect-[9/16] max-h-[420px] w-full max-w-[260px] flex-col items-center justify-center my-4 rounded-card border-2 border-ink bg-paper p-4 shadow-card overflow-hidden">
+      <div className="relative mx-auto flex aspect-[9/16] max-h-[420px] w-full max-w-[260px] flex-col items-center justify-center my-4 rounded-xl border border-border bg-paper p-4 shadow-sm overflow-hidden">
         {previewVideoUrl && previewVideoUrl.startsWith('blob:') ? (
           <video
             src={previewVideoUrl}
@@ -77,39 +77,39 @@ export function ProtectedVideoPlayer({
             className="h-full w-full rounded-btn object-cover"
           />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center rounded-btn border-2 border-dashed border-ink bg-mint p-4 text-center space-y-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-ink bg-sprout shadow-btn">
+          <div className="flex h-full w-full flex-col items-center justify-center rounded-btn border border-dashed border-border bg-mint p-4 text-center space-y-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-sprout shadow-sm">
               <FilmSlate weight="bold" className="h-6 w-6 text-ink" />
             </div>
             <p className="font-display text-xl text-ink">@{editorUsername}</p>
-            <p className="text-xs font-extrabold text-ink">{safeFileName}</p>
-            <p className="text-[11px] font-bold text-muted">
+            <p className="text-xs font-bold text-ink">{safeFileName}</p>
+            <p className="text-[11px] font-medium text-muted">
               Tap play when ready (no autoplay on mobile data)
             </p>
           </div>
         )}
 
-        {/* Watermark Overlay Before Selection */}
+        {/* Security Watermark Overlay Before Selection */}
         {!isCleanFileAvailable && (
           <div
             aria-label={`Watermarked preview for @${editorUsername}`}
             className="pointer-events-none absolute inset-0 flex flex-col items-center justify-between p-3 select-none"
           >
-            <span className="rounded-full border-2 border-ink bg-sun px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-ink">
+            <span className="rounded-full border border-border bg-paper/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted">
               PREVIEW · @{editorUsername}
             </span>
-            <span className="-rotate-12 rounded-btn border-2 border-ink bg-paper/95 px-3 py-1 font-display text-xl text-ink shadow-btn">
+            <span className="rounded-xl border border-border bg-paper/95 px-3 py-1 font-display text-lg font-bold text-ink shadow-sm">
               @{editorUsername}
             </span>
-            <span className="rounded-full border-2 border-ink bg-paper px-2.5 py-0.5 text-[10px] font-extrabold text-ink">
-              Pick clip to get clean file
+            <span className="rounded-full border border-border bg-paper/90 px-2.5 py-0.5 text-[10px] font-semibold text-muted">
+              Select clip to unlock clean file
             </span>
           </div>
         )}
       </div>
 
       {/* Bottom Bar: Download Clean File (only after Pick) or Protection Notice */}
-      <div className="border-t-2 border-ink bg-paper px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div className="border-t border-border bg-paper px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
         {isCleanFileAvailable ? (
           <>
             <span className="inline-flex items-center gap-1.5 font-extrabold text-forest">

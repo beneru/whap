@@ -109,16 +109,16 @@ export default function AccountHolderProfilePage() {
         </div>
 
         {rep.missed_deadlines_count > 0 ? (
-          <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sun p-3.5 text-xs font-extrabold text-ink">
-            <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-sun/50 bg-sun/20 p-3.5 text-xs font-semibold text-ink">
+            <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-amber-700" />
             <span>
               {rep.missed_deadlines_count} selected clip missed the 72-hour post
               link deadline.
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-3.5 text-xs font-extrabold text-ink">
-            <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-3.5 text-xs font-semibold text-ink">
+            <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
             <span>100% of picked clips were posted within 72 hours.</span>
           </div>
         )}

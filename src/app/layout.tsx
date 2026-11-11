@@ -1,28 +1,28 @@
 import type { Metadata } from 'next';
-import { Bagel_Fat_One, Gabarito } from 'next/font/google';
+import { Bricolage_Grotesque, Gabarito } from 'next/font/google';
 import './globals.css';
 import { WhapProvider } from '@/context/WhapContext';
 import { Navbar } from '@/components/Navbar';
 import { AuthOnboardingModal } from '@/components/AuthOnboardingModal';
 
-const displayFont = Bagel_Fat_One({
-  weight: '400',
+const displayFont = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
+  weight: ['600', '700', '800'],
 });
 
 const bodyFont = Gabarito({
-  weight: ['400', '700', '800'],
+  weight: ['400', '500', '700', '800'],
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'whap · Cut Clips, Run Pages, Get Paid Per View',
+  title: 'whap · Short-Form Video Clip Marketplace',
   description:
-    'Clip editing marketplace for social page owners and short-form video editors. Pick a campaign, send your cut, and get paid per view.',
+    'Connect social page owners with short-form video editors. Watermarked review queues, locked per-1k view rates, and verified view payouts.',
 };
 
 export default function RootLayout({

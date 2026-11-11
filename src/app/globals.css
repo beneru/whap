@@ -4,29 +4,39 @@
 
 :root {
   --paper: #FFFFFF;
-  --mint: #EEF9F1;
-  --sprout: #3DDC84;
-  --forest: #0F7D43;
-  --ink: #13261B;
-  --muted: #5B6B61;
-  --sun: #FFD23F;
-  --sky: #8ED1FC;
-  --coral: #FF7A6B;
+  --mint: #F4FAF5;
+  --mint-hover: #EBF5ED;
+  --sprout: #34D399;
+  --sprout-hover: #10B981;
+  --forest: #0D5A32;
+  --forest-hover: #094425;
+  --ink: #0F1E15;
+  --muted: #52665A;
+  --border: rgba(15, 30, 21, 0.12);
+  --border-strong: rgba(15, 30, 21, 0.22);
+  --sun: #F59E0B;
+  --sun-subtle: #FEF3C7;
+  --sky: #0284C7;
+  --sky-subtle: #E0F2FE;
+  --coral: #DC2626;
+  --coral-subtle: #FEE2E2;
 }
 
 body {
   background-color: var(--paper);
   color: var(--ink);
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
 h1,
 h2,
 .font-display {
-  font-family: var(--font-display), cursive;
-  font-weight: 400;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   line-height: 1.15;
   color: var(--ink);
 }
@@ -35,8 +45,9 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-body), sans-serif;
-  font-weight: 800;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
@@ -44,143 +55,163 @@ h6 {
   font-variant-numeric: tabular-nums;
 }
 
-/* Sticker Card: 2px solid ink, 20px radius, 4px 4px 0 ink shadow */
+/* Professional Surface Cards */
 .card-sticker {
   background-color: var(--paper);
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 30, 21, 0.04), 0 4px 12px rgba(15, 30, 21, 0.03);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .card-sticker-mint {
   background-color: var(--mint);
-  border: 2px solid var(--ink);
-  border-radius: 20px;
-  box-shadow: 4px 4px 0 var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 30, 21, 0.04);
 }
 
-/* Sticker Buttons: min-height 48px, 2px solid ink, 12px radius, 3px 3px 0 ink shadow, Gabarito 700 */
+/* Professional Buttons: 44-48px height, 12px radius, subtle tactile elevation */
 .btn-sticker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 48px;
+  min-height: 44px;
   padding: 0.625rem 1.25rem;
-  border: 2px solid var(--ink);
   border-radius: 12px;
   font-family: var(--font-body), sans-serif;
   font-weight: 700;
-  color: var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
-  transition:
-    transform 180ms cubic-bezier(.34, 1.56, .64, 1),
-    box-shadow 180ms cubic-bezier(.34, 1.56, .64, 1),
-    background-color 150ms ease;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(15, 30, 21, 0.06);
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
 }
 
-@media (hover: hover) {
-  .btn-sticker:hover:not(:disabled) {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--ink);
-  }
+.btn-sticker:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(15, 30, 21, 0.08);
 }
 
 .btn-sticker:active:not(:disabled) {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 var(--ink);
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(15, 30, 21, 0.04);
 }
 
 .btn-sticker:focus-visible {
-  outline: 3px solid var(--sprout);
+  outline: 2px solid var(--forest);
   outline-offset: 2px;
 }
 
 .btn-sticker:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-primary {
   background-color: var(--sprout);
   color: var(--ink);
+  border-color: rgba(13, 90, 50, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--sprout-hover);
 }
 
 .btn-secondary {
   background-color: var(--paper);
   color: var(--ink);
+  border-color: var(--border-strong);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--mint);
+  border-color: var(--forest);
 }
 
 .btn-danger {
-  background-color: var(--coral);
-  color: var(--ink);
+  background-color: var(--coral-subtle);
+  color: var(--coral);
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #FCA5A5;
+  color: #7F1D1D;
 }
 
 .btn-sun {
-  background-color: var(--sun);
-  color: var(--ink);
+  background-color: var(--sun-subtle);
+  color: #92400E;
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
-/* Sticker Inputs: white, 2px ink border, 12px radius, min-height 48px, focus = forest border + 3px sprout outline */
+.btn-sun:hover:not(:disabled) {
+  background-color: #FDE68A;
+}
+
+/* Professional Input Fields */
 .input-sticker {
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   background-color: var(--paper);
-  border: 2px solid var(--ink);
+  border: 1px solid var(--border-strong);
   border-radius: 12px;
   padding: 0.625rem 0.875rem;
   font-family: var(--font-body), sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   font-weight: 400;
   color: var(--ink);
-  transition: border-color 150ms ease, outline 150ms ease;
+  box-shadow: 0 1px 2px rgba(15, 30, 21, 0.03);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .input-sticker::placeholder {
   color: var(--muted);
+  opacity: 0.75;
 }
 
 .input-sticker:focus,
 .input-sticker:focus-visible {
   border-color: var(--forest);
-  outline: 3px solid var(--sprout);
-  outline-offset: 0px;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
 }
 
-/* Status Chips: pill shape, 2px ink border, icon + label */
+/* Status Chips: Clean, refined status indicators */
 .chip-sticker {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  border: 2px solid var(--ink);
+  border: 1px solid transparent;
   border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.65rem;
   font-family: var(--font-body), sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.75rem;
-  line-height: 1.2;
+  line-height: 1rem;
+  letter-spacing: 0.01em;
 }
 
-/* Progress Bar: 12px tall, 2px ink border, sprout fill */
+/* Progress Bars */
 .progress-sticker {
-  height: 12px;
+  height: 8px;
   width: 100%;
-  border: 2px solid var(--ink);
   border-radius: 9999px;
-  background-color: var(--paper);
+  background-color: rgba(15, 30, 21, 0.08);
   overflow: hidden;
 }
 
 .progress-sticker-fill {
   height: 100%;
-  background-color: var(--sprout);
-  transition: width 220ms cubic-bezier(.34, 1.56, .64, 1);
+  border-radius: 9999px;
+  background-color: var(--forest);
+  transition: width 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Confetti Burst Keyframes */
@@ -199,7 +230,7 @@ h6 {
 }
 
 .confetti-piece {
-  animation: confetti-pop 650ms cubic-bezier(.34, 1.56, .64, 1) forwards;
+  animation: confetti-pop 650ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

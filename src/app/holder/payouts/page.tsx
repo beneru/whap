@@ -54,16 +54,16 @@ export default function HolderPayoutsPage() {
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
           <span>{toastMsg}</span>
           <ConfettiBurst active={Boolean(paidConfettiId)} />
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
-          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-semibold text-ink shadow-sm">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-coral" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -73,20 +73,20 @@ export default function HolderPayoutsPage() {
           const editor = db.profiles.find((p) => p.id === pr.editor_id);
           return (
             <div key={pr.id} className="card-sticker p-6 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
                 <div>
-                  <span className="text-xs font-extrabold uppercase text-forest">
+                  <span className="text-xs font-bold uppercase tracking-wider text-forest">
                     Editor: {editor?.display_name} (@{editor?.username})
                   </span>
-                  <p className="font-display text-3xl text-ink tabular-nums">
+                  <p className="font-display text-3xl font-bold text-ink tabular-nums">
                     {formatMoneyCents(pr.amount_cents, pr.currency)}
                   </p>
                 </div>
                 <PayoutStatusChip status={pr.status} />
               </div>
 
-              <div className="rounded-btn border-2 border-ink bg-mint p-3.5 text-xs space-y-1">
-                <span className="font-extrabold uppercase text-ink">
+              <div className="rounded-xl border border-border bg-mint/50 p-3.5 text-xs space-y-1">
+                <span className="font-bold uppercase tracking-wider text-muted">
                   Send to ({pr.payout_method_type.toUpperCase()}):
                 </span>
                 <p className="font-bold text-ink tabular-nums">

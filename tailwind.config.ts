@@ -20,19 +20,20 @@ const config: Config = {
         coral: 'var(--coral)',
       },
       fontFamily: {
-        display: ['var(--font-display)', 'cursive'],
-        sans: ['var(--font-body)', 'sans-serif'],
-        body: ['var(--font-body)', 'sans-serif'],
+        display: ['var(--font-display)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['var(--font-body)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        body: ['var(--font-body)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       borderRadius: {
         btn: '12px',
-        card: '20px',
+        card: '16px',
       },
       boxShadow: {
-        card: '4px 4px 0 var(--ink)',
-        btn: '3px 3px 0 var(--ink)',
-        'btn-hover': '4px 4px 0 var(--ink)',
-        none: '0 0 0 var(--ink)',
+        card: '0 1px 3px rgba(15, 30, 21, 0.04), 0 4px 12px rgba(15, 30, 21, 0.03)',
+        btn: '0 1px 2px rgba(15, 30, 21, 0.06)',
+        'btn-hover': '0 3px 6px rgba(15, 30, 21, 0.08)',
+        subtle: '0 1px 2px rgba(15, 30, 21, 0.04)',
+        none: '0 0 0 transparent',
       },
       transitionTimingFunction: {
         spring: 'cubic-bezier(.34,1.56,.64,1)',

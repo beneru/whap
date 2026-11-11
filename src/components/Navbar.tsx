@@ -137,15 +137,15 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
+      <header className="sticky top-0 z-40 border-b border-border bg-paper/95 backdrop-blur-none">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 gap-3">
           {/* Brand Logo */}
           <div className="flex items-center gap-5">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-btn border-2 border-ink bg-sprout shadow-btn transition-transform duration-150 ease-spring group-hover:-translate-y-0.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-sprout shadow-sm transition-transform duration-150 group-hover:-translate-y-0.5">
                 <FilmSlate weight="bold" className="h-5 w-5 text-ink" />
               </div>
-              <span className="font-display text-2xl tracking-tight text-ink">
+              <span className="font-display text-2xl tracking-tight font-bold text-ink">
                 whap
               </span>
             </Link>
@@ -165,10 +165,10 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-extrabold transition ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
                       isActive
-                        ? 'border-2 border-ink bg-sprout text-ink'
-                        : 'border-2 border-transparent text-ink hover:bg-mint hover:text-forest'
+                        ? 'border border-emerald-500/40 bg-sprout/25 text-ink'
+                        : 'border border-transparent text-muted hover:bg-mint hover:text-ink'
                     }`}
                   >
                     <Icon weight="bold" className="h-4 w-4 text-ink" />
@@ -180,10 +180,10 @@ export function Navbar() {
               {currentUser && activeRole === 'editor' && (
                 <Link
                   href="/editor/profile"
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-extrabold transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
                     pathname === '/editor/profile'
-                      ? 'border-2 border-ink bg-sprout text-ink'
-                      : 'border-2 border-transparent text-ink hover:bg-mint hover:text-forest'
+                      ? 'border border-emerald-500/40 bg-sprout/25 text-ink'
+                      : 'border border-transparent text-muted hover:bg-mint hover:text-ink'
                   }`}
                 >
                   <UserCircle weight="bold" className="h-4 w-4 text-ink" />
@@ -194,10 +194,10 @@ export function Navbar() {
               {currentUser && activeRole === 'account_holder' && (
                 <Link
                   href="/holder/campaigns/new"
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-extrabold transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
                     pathname === '/holder/campaigns/new'
-                      ? 'border-2 border-ink bg-sprout text-ink'
-                      : 'border-2 border-transparent text-forest hover:bg-mint'
+                      ? 'border border-emerald-500/40 bg-sprout/25 text-ink'
+                      : 'border border-transparent text-forest hover:bg-mint'
                   }`}
                 >
                   <PlusCircle weight="bold" className="h-4 w-4" />
@@ -208,7 +208,7 @@ export function Navbar() {
               {pathname !== '/styleguide' && (
                 <Link
                   href="/styleguide"
-                  className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold text-muted hover:bg-mint hover:text-ink"
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-muted hover:bg-mint hover:text-ink"
                 >
                   <Palette weight="bold" className="h-3.5 w-3.5" />
                   <span>Styleguide</span>
@@ -224,14 +224,14 @@ export function Navbar() {
               <div
                 role="group"
                 aria-label="Switch Role"
-                className="flex items-center rounded-full border-2 border-ink bg-mint p-0.5 text-xs"
+                className="flex items-center rounded-full border border-border bg-mint/50 p-0.5 text-xs"
               >
                 <button
                   type="button"
                   onClick={() => handleRoleSwitch('editor')}
-                  className={`rounded-full px-2.5 py-1 font-extrabold transition ${
+                  className={`rounded-full px-2.5 py-1 font-bold transition ${
                     activeRole === 'editor'
-                      ? 'border-2 border-ink bg-sprout text-ink'
+                      ? 'border border-emerald-500/40 bg-sprout text-ink shadow-sm'
                       : 'text-muted hover:text-ink'
                   }`}
                 >
@@ -240,9 +240,9 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => handleRoleSwitch('account_holder')}
-                  className={`rounded-full px-2.5 py-1 font-extrabold transition ${
+                  className={`rounded-full px-2.5 py-1 font-bold transition ${
                     activeRole === 'account_holder'
-                      ? 'border-2 border-ink bg-sprout text-ink'
+                      ? 'border border-emerald-500/40 bg-sprout text-ink shadow-sm'
                       : 'text-muted hover:text-ink'
                   }`}
                 >
@@ -252,9 +252,9 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => handleRoleSwitch('admin')}
-                    className={`rounded-full px-2.5 py-1 font-extrabold transition ${
+                    className={`rounded-full px-2.5 py-1 font-bold transition ${
                       activeRole === 'admin'
-                        ? 'border-2 border-ink bg-sun text-ink'
+                        ? 'border border-sun/60 bg-sun text-ink shadow-sm'
                         : 'text-muted hover:text-ink'
                     }`}
                   >
@@ -268,9 +268,9 @@ export function Navbar() {
             {wallet && activeRole === 'editor' && (
               <Link
                 href="/editor/payouts"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-sprout px-3 py-1 text-xs font-extrabold text-ink shadow-btn"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-sprout/20 px-3 py-1 text-xs font-bold text-forest shadow-sm hover:bg-sprout/30 transition"
               >
-                <Coins weight="bold" className="h-4 w-4 text-ink" />
+                <Coins weight="bold" className="h-4 w-4 text-forest" />
                 <span className="tabular-nums">
                   {formatMoneyCents(wallet.availableBalanceCents, 'USD')}
                 </span>
@@ -287,11 +287,11 @@ export function Navbar() {
                     setPersonaOpen(false);
                   }}
                   aria-label="Notifications"
-                  className="relative flex h-11 w-11 items-center justify-center rounded-btn border-2 border-ink bg-paper text-ink shadow-btn hover:bg-mint"
+                  className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-paper text-ink shadow-sm hover:bg-mint transition"
                 >
-                  <Bell weight="bold" className="h-5 w-5 text-ink" />
+                  <Bell weight="bold" className="h-4 w-4 text-ink" />
                   {unreadCount > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-ink bg-sun px-1 text-[11px] font-extrabold text-ink tabular-nums">
+                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border border-border bg-sun px-1 text-[10px] font-bold text-ink tabular-nums">
                       {unreadCount}
                     </span>
                   )}
@@ -299,14 +299,14 @@ export function Navbar() {
 
                 {notifOpen && (
                   <div className="card-sticker absolute right-0 mt-2 w-80 sm:w-96 p-4 z-50">
-                    <div className="flex items-center justify-between border-b-2 border-ink pb-2.5">
+                    <div className="flex items-center justify-between border-b border-border pb-2.5">
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => setNotifTab('in_app')}
-                          className={`rounded-full px-3 py-1 text-xs font-extrabold ${
+                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${
                             notifTab === 'in_app'
-                              ? 'border-2 border-ink bg-sprout text-ink'
+                              ? 'border border-emerald-500/40 bg-sprout text-ink shadow-sm'
                               : 'text-muted hover:text-ink'
                           }`}
                         >
@@ -315,9 +315,9 @@ export function Navbar() {
                         <button
                           type="button"
                           onClick={() => setNotifTab('email')}
-                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold ${
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition ${
                             notifTab === 'email'
-                              ? 'border-2 border-ink bg-sprout text-ink'
+                              ? 'border border-emerald-500/40 bg-sprout text-ink shadow-sm'
                               : 'text-muted hover:text-ink'
                           }`}
                         >
@@ -330,7 +330,7 @@ export function Navbar() {
                         <button
                           type="button"
                           onClick={markAllNotificationsRead}
-                          className="inline-flex items-center gap-1 text-xs font-extrabold text-forest hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-forest hover:underline"
                         >
                           <Checks weight="bold" className="h-3.5 w-3.5" />
                           <span>Mark read</span>
@@ -338,9 +338,9 @@ export function Navbar() {
                       )}
                     </div>
 
-                    <div className="mt-3 max-h-80 space-y-2.5 overflow-y-auto pr-1">
+                    <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
                       {userNotifs.length === 0 ? (
-                        <p className="py-6 text-center text-xs font-bold text-muted">
+                        <p className="py-6 text-center text-xs font-medium text-muted">
                           No alerts right now.
                         </p>
                       ) : notifTab === 'in_app' ? (
@@ -352,16 +352,18 @@ export function Navbar() {
                               setNotifOpen(false);
                               router.push(n.action_url);
                             }}
-                            className={`cursor-pointer rounded-btn border-2 border-ink p-3 transition ${
-                              n.read ? 'bg-paper hover:bg-mint' : 'bg-mint'
+                            className={`cursor-pointer rounded-xl border p-3 transition ${
+                              n.read
+                                ? 'border-border bg-paper hover:bg-mint/60'
+                                : 'border-emerald-500/30 bg-mint/80'
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <span className="text-xs font-extrabold text-ink">
+                              <span className="text-xs font-bold text-ink">
                                 {n.title}
                               </span>
                               {!n.read && (
-                                <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-ink bg-sprout mt-1" />
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-forest mt-1" />
                               )}
                             </div>
                             <p className="mt-1 text-xs text-muted">{n.body}</p>
@@ -371,7 +373,7 @@ export function Navbar() {
                         userNotifs.map((n) => (
                           <div
                             key={n.id}
-                            className="rounded-btn border-2 border-ink bg-mint p-3 text-xs space-y-1"
+                            className="rounded-xl border border-border bg-mint/50 p-3 text-xs space-y-1"
                           >
                             <div className="flex items-center justify-between text-[11px] font-bold text-muted">
                               <span>To: {currentUser?.email}</span>
@@ -401,7 +403,7 @@ export function Navbar() {
                     setPersonaOpen((prev) => !prev);
                     setNotifOpen(false);
                   }}
-                  className="flex h-11 items-center gap-1.5 rounded-btn border-2 border-ink bg-paper px-3 text-xs font-extrabold text-ink shadow-btn hover:bg-mint"
+                  className="flex h-9 items-center gap-1.5 rounded-xl border border-border bg-paper px-3 text-xs font-semibold text-ink shadow-sm hover:bg-mint transition"
                 >
                   <Users weight="bold" className="h-4 w-4 text-ink" />
                   <span className="max-w-[96px] truncate">
@@ -421,8 +423,8 @@ export function Navbar() {
 
               {personaOpen && (
                 <div className="card-sticker absolute right-0 mt-2 w-72 p-3.5 z-50 space-y-2.5">
-                  <div className="border-b-2 border-ink pb-2 flex items-center justify-between">
-                    <span className="text-xs font-extrabold uppercase text-ink">
+                  <div className="border-b border-border pb-2 flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink">
                       Switch Demo Account
                     </span>
                     <button
@@ -431,7 +433,7 @@ export function Navbar() {
                         resetToInitialSeed();
                         setPersonaOpen(false);
                       }}
-                      className="inline-flex items-center gap-1 text-xs font-extrabold text-forest hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-forest hover:underline"
                     >
                       <ArrowsClockwise weight="bold" className="h-3.5 w-3.5" />
                       <span>Reset Data</span>
@@ -449,19 +451,19 @@ export function Navbar() {
                             switchDemoPersona(p.id);
                             setPersonaOpen(false);
                           }}
-                          className={`w-full rounded-btn border-2 p-2 text-left text-xs transition ${
+                          className={`w-full rounded-xl border p-2 text-left text-xs transition ${
                             isCurrent
-                              ? 'border-ink bg-sprout text-ink font-extrabold'
-                              : 'border-transparent hover:border-ink hover:bg-mint text-ink'
+                              ? 'border-emerald-500/40 bg-sprout/20 text-ink font-bold'
+                              : 'border-transparent hover:border-border hover:bg-mint text-ink'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-extrabold">{p.display_name}</span>
-                            <span className="rounded-full border border-ink bg-paper px-2 py-0.5 text-[10px] font-extrabold uppercase text-ink">
+                            <span className="font-bold">{p.display_name}</span>
+                            <span className="rounded-full border border-border bg-paper px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
                               {p.role}
                             </span>
                           </div>
-                          <span className="text-[11px] font-bold text-muted">
+                          <span className="text-[11px] font-medium text-muted">
                             @{p.username}
                           </span>
                         </button>
@@ -469,14 +471,14 @@ export function Navbar() {
                     })}
                   </div>
 
-                  <div className="border-t-2 border-ink pt-2 flex flex-col gap-1.5">
+                  <div className="border-t border-border pt-2 flex flex-col gap-1.5">
                     <button
                       type="button"
                       onClick={() => {
                         setPersonaOpen(false);
                         setAuthModalOpen(true);
                       }}
-                      className="w-full rounded-btn border-2 border-ink bg-mint py-2 text-xs font-extrabold text-ink hover:bg-sprout"
+                      className="w-full rounded-xl border border-border bg-mint py-2 text-xs font-bold text-ink hover:bg-sprout transition"
                     >
                       + Test 1-Screen Onboarding
                     </button>
@@ -487,7 +489,7 @@ export function Navbar() {
                         setPersonaOpen(false);
                         router.push('/campaigns');
                       }}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-btn border-2 border-ink bg-paper py-2 text-xs font-extrabold text-ink hover:bg-coral"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-paper py-2 text-xs font-bold text-ink hover:bg-coral/20 transition"
                     >
                       <SignOut weight="bold" className="h-4 w-4" />
                       <span>Browse Logged Out</span>
@@ -500,10 +502,10 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Tab Bar (Max 4 items, active item gets a sprout pill behind the icon) */}
+      {/* Mobile Bottom Tab Bar */}
       <nav
         aria-label="Mobile Bottom Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t-2 border-ink bg-paper md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-paper/95 backdrop-blur-none md:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-4 px-2 py-1.5">
           {navLinks.slice(0, 4).map((item) => {
@@ -521,15 +523,15 @@ export function Navbar() {
                 <span
                   className={`flex h-8 w-12 items-center justify-center rounded-full transition ${
                     isActive
-                      ? 'border-2 border-ink bg-sprout'
-                      : 'border-2 border-transparent'
+                      ? 'border border-emerald-500/40 bg-sprout/30'
+                      : 'border border-transparent'
                   }`}
                 >
                   <Icon weight="bold" className="h-5 w-5 text-ink" />
                 </span>
                 <span
                   className={`text-[11px] ${
-                    isActive ? 'font-extrabold text-ink' : 'font-bold text-muted'
+                    isActive ? 'font-bold text-ink' : 'font-medium text-muted'
                   }`}
                 >
                   {item.shortLabel}

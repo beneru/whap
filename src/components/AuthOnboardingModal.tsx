@@ -70,28 +70,28 @@ export function AuthOnboardingModal() {
           type="button"
           onClick={() => setAuthModalOpen(false)}
           aria-label="Close sign in window"
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-btn border-2 border-ink bg-paper text-ink shadow-btn hover:bg-mint"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-paper text-ink shadow-sm hover:bg-mint transition"
         >
-          <X weight="bold" className="h-5 w-5" />
+          <X weight="bold" className="h-4 w-4" />
         </button>
 
         <div className="flex items-center gap-4">
-          <ClappyMascot variant="wave" size={76} className="shrink-0" />
+          <ClappyMascot variant="wave" size={60} className="shrink-0" />
           <div>
             <span className="chip-sticker bg-sprout text-ink">
-              No Passwords Needed
+              Passwordless Auth
             </span>
             <h2
               id="onboarding-modal-title"
-              className="mt-1.5 font-display text-2xl text-ink"
+              className="mt-1.5 font-display text-2xl font-bold text-ink"
             >
-              {step === 'auth' ? 'Sign in to whap' : 'One quick step!'}
+              {step === 'auth' ? 'Sign in to whap' : 'One quick step'}
             </h2>
           </div>
         </div>
 
         {errorMsg && (
-          <div className="rounded-btn border-2 border-ink bg-coral p-3 text-xs font-extrabold text-ink">
+          <div className="rounded-xl border border-coral/40 bg-coral/15 p-3 text-xs font-bold text-ink">
             {errorMsg}
           </div>
         )}
@@ -108,18 +108,18 @@ export function AuthOnboardingModal() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="h-0.5 flex-1 bg-ink" />
-              <span className="text-xs font-extrabold uppercase text-muted">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs font-bold uppercase tracking-wider text-muted">
                 or email magic link
               </span>
-              <div className="h-0.5 flex-1 bg-ink" />
+              <div className="h-px flex-1 bg-border" />
             </div>
 
             <form onSubmit={handleSendMagicLink} className="space-y-3">
               <div>
                 <label
                   htmlFor="magic-link-email"
-                  className="mb-1.5 block text-sm font-extrabold text-ink"
+                  className="mb-1.5 block text-sm font-bold text-ink"
                 >
                   Your email address
                 </label>
@@ -142,8 +142,8 @@ export function AuthOnboardingModal() {
                   <span>Send Magic Link</span>
                 </button>
               ) : (
-                <div className="rounded-btn border-2 border-ink bg-mint p-4 space-y-3">
-                  <p className="text-xs font-bold text-ink">
+                <div className="rounded-xl border border-border bg-mint p-4 space-y-3">
+                  <p className="text-xs font-semibold text-ink">
                     We sent a sign-in link to <strong>{email}</strong>. Tap below to
                     open it right now:
                   </p>
@@ -164,7 +164,7 @@ export function AuthOnboardingModal() {
             <div>
               <label
                 htmlFor="onboarding-display-name"
-                className="mb-1.5 block text-sm font-extrabold text-ink"
+                className="mb-1.5 block text-sm font-bold text-ink"
               >
                 What name should people see?
               </label>
@@ -179,7 +179,7 @@ export function AuthOnboardingModal() {
             </div>
 
             <div className="space-y-2">
-              <span className="block text-sm font-extrabold text-ink">
+              <span className="block text-sm font-bold text-ink">
                 How will you use whap?
               </span>
               <div className="grid grid-cols-1 gap-2.5">
@@ -208,14 +208,16 @@ export function AuthOnboardingModal() {
                       onClick={() =>
                         setRole(opt.value as 'editor' | 'account_holder' | 'both')
                       }
-                      className={`rounded-btn border-2 border-ink p-3 text-left transition ${
-                        selected ? 'bg-sprout shadow-btn' : 'bg-paper hover:bg-mint'
+                      className={`rounded-xl border p-3 text-left transition ${
+                        selected
+                          ? 'border-emerald-600 bg-emerald-500/10 shadow-sm'
+                          : 'border-border bg-paper hover:bg-mint/60'
                       }`}
                     >
-                      <div className="font-extrabold text-sm text-ink">
+                      <div className="font-bold text-sm text-ink">
                         {opt.title}
                       </div>
-                      <div className="text-xs text-ink/80">{opt.desc}</div>
+                      <div className="text-xs text-muted mt-0.5">{opt.desc}</div>
                     </button>
                   );
                 })}

@@ -226,7 +226,7 @@ export default function CampaignDetailPage() {
           <div className="card-sticker p-6 space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="rounded-full border-2 border-ink bg-mint px-3 py-0.5 text-xs font-extrabold text-ink">
+                <span className="rounded-full border border-border bg-mint px-3 py-0.5 text-xs font-bold text-ink">
                   {campaign.niche}
                 </span>
                 <CampaignStatusChip status={campaign.status} />
@@ -237,7 +237,7 @@ export default function CampaignDetailPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-2xl sm:text-4xl text-ink">
+            <h1 className="font-display text-2xl sm:text-4xl font-bold text-ink">
               {campaign.title}
             </h1>
 
@@ -248,15 +248,15 @@ export default function CampaignDetailPage() {
               {campaign.target_page_handles.map((handle) => (
                 <span
                   key={handle}
-                  className="rounded-full border-2 border-ink bg-sprout px-3 py-0.5 text-xs font-extrabold text-ink"
+                  className="rounded-full border border-border bg-sprout px-3 py-0.5 text-xs font-bold text-ink"
                 >
                   Page: {handle}
                 </span>
               ))}
             </div>
 
-            <div className="border-t-2 border-ink pt-4 space-y-2">
-              <h3 className="text-sm font-extrabold uppercase text-ink">
+            <div className="border-t border-border pt-4 space-y-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-ink">
                 What to Edit
               </h3>
               <p className="whitespace-pre-line text-sm text-ink leading-relaxed">
@@ -265,11 +265,11 @@ export default function CampaignDetailPage() {
             </div>
 
             {campaign.hook_notes && (
-              <div className="rounded-btn border-2 border-ink bg-sun p-4 shadow-btn">
-                <span className="block text-xs font-extrabold uppercase text-ink">
+              <div className="rounded-xl border border-sun/50 bg-sun/20 p-4">
+                <span className="block text-xs font-bold uppercase tracking-wider text-ink">
                   First 3 Seconds (Hook Rule)
                 </span>
-                <p className="mt-1 text-sm font-bold text-ink">
+                <p className="mt-1 text-sm font-medium text-ink">
                   {campaign.hook_notes}
                 </p>
               </div>
@@ -277,27 +277,27 @@ export default function CampaignDetailPage() {
 
             {/* Format Specs Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Aspect Ratio</span>
-                <p className="mt-0.5 text-sm font-extrabold text-ink">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Aspect Ratio</span>
+                <p className="mt-0.5 text-sm font-bold text-ink">
                   {campaign.aspect_ratio} Vertical
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Clip Length</span>
-                <p className="mt-0.5 text-sm font-extrabold text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Clip Length</span>
+                <p className="mt-0.5 text-sm font-bold text-ink tabular-nums">
                   {campaign.min_length_sec}s to {campaign.max_length_sec}s
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Captions</span>
-                <p className="mt-0.5 text-sm font-extrabold text-ink">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Captions</span>
+                <p className="mt-0.5 text-sm font-bold text-ink">
                   {campaign.captions_required ? 'Required on screen' : 'Optional'}
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Limit / Editor</span>
-                <p className="mt-0.5 text-sm font-extrabold text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Limit / Editor</span>
+                <p className="mt-0.5 text-sm font-bold text-ink tabular-nums">
                   Up to {campaign.max_submissions_per_editor} clips
                 </p>
               </div>
@@ -315,7 +315,7 @@ export default function CampaignDetailPage() {
                     href={url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center justify-between rounded-btn border-2 border-ink bg-mint px-4 py-3 text-xs font-extrabold text-forest hover:bg-sprout hover:text-ink"
+                    className="flex items-center justify-between rounded-xl border border-border bg-mint/50 px-4 py-3 text-xs font-semibold text-forest hover:bg-sprout/20 hover:text-ink transition"
                   >
                     <span className="truncate">{url}</span>
                     <ArrowSquareOut weight="bold" className="h-4 w-4 shrink-0 ml-2" />
@@ -340,28 +340,28 @@ export default function CampaignDetailPage() {
                     Submit Your Edited Clip
                   </h2>
                 </div>
-                <span className="rounded-full border-2 border-ink bg-paper px-3 py-1 text-xs font-extrabold text-ink tabular-nums">
+                <span className="rounded-full border border-border bg-paper px-3 py-1 text-xs font-bold text-ink tabular-nums">
                   {mySubmissions.filter((s) => s.status !== 'rejected').length} /{' '}
                   {campaign.max_submissions_per_editor} clips used
                 </span>
               </div>
 
               {submitError && (
-                <div className="flex items-start gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink">
-                  <WarningCircle weight="bold" className="h-5 w-5 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-bold text-ink">
+                  <WarningCircle weight="bold" className="h-5 w-5 shrink-0 mt-0.5 text-coral" />
                   <span>{submitError}</span>
                 </div>
               )}
 
               {submitSuccess && (
-                <div className="rounded-btn border-2 border-ink bg-sprout p-4 space-y-3 shadow-btn">
+                <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <ClappyMascot variant="celebrate" size={64} />
+                    <ClappyMascot variant="celebrate" size={56} />
                     <div className="space-y-1">
-                      <p className="font-display text-xl text-ink">
-                        Clip submitted!
+                      <p className="font-display text-xl font-bold text-ink">
+                        Clip submitted
                       </p>
-                      <p className="text-xs font-extrabold text-ink">
+                      <p className="text-xs font-semibold text-ink">
                         {submitSuccess}
                       </p>
                     </div>
@@ -401,7 +401,7 @@ export default function CampaignDetailPage() {
                 </div>
 
                 {sourceType === 'upload' ? (
-                  <div className="rounded-card border-2 border-ink bg-paper p-4 space-y-3">
+                  <div className="rounded-xl border border-border bg-paper p-4 space-y-3">
                     <label
                       htmlFor="clip-file-input"
                       className="block text-sm font-extrabold text-ink"
@@ -577,25 +577,25 @@ export default function CampaignDetailPage() {
         <div className="lg:col-span-4 space-y-5">
           <div className="card-sticker p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase text-muted">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted">
                 Pay Rate
               </span>
-              <span className="rounded-btn border-2 border-ink bg-sprout px-3 py-1 font-display text-2xl text-ink shadow-btn">
+              <span className="rounded-xl border border-emerald-500/30 bg-sprout/20 px-3 py-1 font-display text-2xl font-bold text-forest">
                 {formatMoneyCents(campaign.rate_per_1k_cents, campaign.currency)} /
                 1K
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Base Pay</span>
-                <p className="font-display text-xl text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Base Pay</span>
+                <p className="font-display text-xl font-bold text-ink tabular-nums">
                   {formatMoneyCents(campaign.base_fee_cents, campaign.currency)}
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                <span className="text-xs font-bold text-muted">Max View Bonus</span>
-                <p className="font-display text-xl text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-3">
+                <span className="text-xs font-medium text-muted">Max View Bonus</span>
+                <p className="font-display text-xl font-bold text-ink tabular-nums">
                   {formatMoneyCents(
                     campaign.max_payout_per_clip_cents,
                     campaign.currency
@@ -604,11 +604,11 @@ export default function CampaignDetailPage() {
               </div>
             </div>
 
-            {/* Remaining Budget Bar (12px tall, 2px ink border, sprout fill) */}
+            {/* Remaining Budget Bar */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-extrabold text-ink">
+              <div className="flex justify-between text-xs font-semibold text-ink">
                 <span>Remaining Campaign Budget</span>
-                <span className="tabular-nums">
+                <span className="tabular-nums font-bold">
                   {formatMoneyCents(budget.remainingBudgetCents, campaign.currency)}
                 </span>
               </div>
@@ -618,7 +618,7 @@ export default function CampaignDetailPage() {
                   style={{ width: `${remainingPct}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[11px] font-bold text-muted tabular-nums">
+              <div className="flex justify-between text-[11px] font-medium text-muted tabular-nums">
                 <span>
                   Used: {formatMoneyCents(budget.accruedBudgetCents, campaign.currency)}
                 </span>
@@ -643,7 +643,7 @@ export default function CampaignDetailPage() {
               </span>
             </button>
 
-            <p className="text-center text-xs font-bold text-muted">
+            <p className="text-center text-xs font-medium text-muted">
               {campaign.view_tracking_window_days}-day view window · Posted within{' '}
               {campaign.post_deadline_hours}h after pick
             </p>
@@ -651,13 +651,13 @@ export default function CampaignDetailPage() {
 
           {/* Payout Calculator for This Campaign */}
           <div className="card-sticker bg-mint p-5 space-y-3">
-            <h3 className="text-sm font-extrabold uppercase text-ink">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-ink">
               Estimate Your Pay
             </h3>
             <div className="space-y-1">
-              <div className="flex justify-between text-xs font-extrabold text-ink">
-                <label htmlFor="camp-calc-views">If your clip gets:</label>
-                <span className="tabular-nums">
+              <div className="flex justify-between text-xs font-semibold text-ink">
+                <label htmlFor="camp-calc-views" className="text-muted">If your clip gets:</label>
+                <span className="tabular-nums font-bold">
                   {calcViews.toLocaleString()} views
                 </span>
               </div>
@@ -669,14 +669,14 @@ export default function CampaignDetailPage() {
                 step={1000}
                 value={calcViews}
                 onChange={(e) => setCalcViews(Number(e.target.value))}
-                className="w-full accent-forest"
+                className="w-full accent-forest cursor-pointer"
               />
             </div>
-            <div className="flex items-center justify-between rounded-btn border-2 border-ink bg-sprout px-4 py-2.5 shadow-btn">
-              <span className="text-xs font-extrabold text-ink">
+            <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-sprout/20 px-4 py-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-forest">
                 Your Clip Pay
               </span>
-              <span className="font-display text-2xl text-ink tabular-nums">
+              <span className="font-display text-2xl font-bold text-ink tabular-nums">
                 {formatMoneyCents(estEarnings.netEarningsCents, campaign.currency)}
               </span>
             </div>
@@ -686,12 +686,12 @@ export default function CampaignDetailPage() {
           <div className="card-sticker p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-extrabold uppercase text-forest">
+                <span className="text-xs font-bold uppercase tracking-wider text-forest">
                   Page Owner
                 </span>
                 <Link
                   href={`/holders/${campaign.owner_id}`}
-                  className="block text-base font-extrabold text-ink hover:text-forest"
+                  className="block text-base font-bold text-ink hover:text-forest transition"
                 >
                   {owner?.display_name} (@{owner?.username})
                 </Link>
@@ -700,35 +700,35 @@ export default function CampaignDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-btn border-2 border-ink bg-mint p-2.5">
-                <span className="font-bold text-muted">Campaigns Run</span>
-                <p className="text-sm font-extrabold text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-2.5">
+                <span className="font-medium text-muted">Campaigns Run</span>
+                <p className="text-sm font-bold text-ink tabular-nums">
                   {holderRep.campaigns_run}
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-2.5">
-                <span className="font-bold text-muted">Clips Picked</span>
-                <p className="text-sm font-extrabold text-ink tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-2.5">
+                <span className="font-medium text-muted">Clips Picked</span>
+                <p className="text-sm font-bold text-ink tabular-nums">
                   {holderRep.clips_selected}
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-2.5">
-                <span className="font-bold text-muted">Total Paid Out</span>
-                <p className="text-sm font-extrabold text-forest tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-2.5">
+                <span className="font-medium text-muted">Total Paid Out</span>
+                <p className="text-sm font-bold text-forest tabular-nums">
                   {formatMoneyCents(holderRep.total_paid_out_cents, 'USD')}
                 </p>
               </div>
-              <div className="rounded-btn border-2 border-ink bg-mint p-2.5">
-                <span className="font-bold text-muted">Posted on Time</span>
-                <p className="text-sm font-extrabold text-forest tabular-nums">
+              <div className="rounded-xl border border-border bg-mint/50 p-2.5">
+                <span className="font-medium text-muted">Posted on Time</span>
+                <p className="text-sm font-bold text-forest tabular-nums">
                   {holderRep.on_time_post_percent}%
                 </p>
               </div>
             </div>
 
             {holderRep.missed_deadlines_count > 0 && (
-              <div className="flex items-center gap-2 rounded-btn border-2 border-ink bg-sun px-3 py-2 text-xs font-extrabold text-ink">
-                <WarningCircle weight="bold" className="h-4 w-4 shrink-0" />
+              <div className="flex items-center gap-2 rounded-xl border border-sun/50 bg-sun/20 px-3 py-2 text-xs font-semibold text-ink">
+                <WarningCircle weight="bold" className="h-4 w-4 shrink-0 text-amber-700" />
                 <span>
                   {holderRep.missed_deadlines_count} late 72h post flagged
                 </span>
@@ -737,7 +737,7 @@ export default function CampaignDetailPage() {
 
             <Link
               href={`/holders/${campaign.owner_id}`}
-              className="block text-center text-xs font-extrabold text-forest hover:underline"
+              className="block text-center text-xs font-semibold text-forest hover:underline"
             >
               See Full Page Owner Track Record &rarr;
             </Link>
@@ -746,14 +746,14 @@ export default function CampaignDetailPage() {
           {/* Editor's Existing Clips on This Campaign */}
           {mySubmissions.length > 0 && (
             <div className="card-sticker p-5 space-y-3">
-              <h3 className="text-sm font-extrabold uppercase text-ink">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-ink">
                 Your Clips Here ({mySubmissions.length})
               </h3>
               <div className="space-y-2">
                 {mySubmissions.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between rounded-btn border-2 border-ink bg-mint p-2.5 text-xs"
+                    className="flex items-center justify-between rounded-xl border border-border bg-mint/50 p-2.5 text-xs"
                   >
                     <span className="truncate font-extrabold text-ink max-w-[140px]">
                       {s.file_name}

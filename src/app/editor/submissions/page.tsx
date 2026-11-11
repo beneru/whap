@@ -90,15 +90,15 @@ export default function EditorSubmissionsPage() {
       </div>
 
       {toastMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-sprout p-4 text-sm font-extrabold text-ink shadow-btn">
-          <CheckCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-sprout/20 p-4 text-sm font-semibold text-ink shadow-sm">
+          <CheckCircle weight="bold" className="h-5 w-5 shrink-0 text-forest" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-2.5 rounded-btn border-2 border-ink bg-coral p-4 text-sm font-extrabold text-ink shadow-btn">
-          <WarningCircle weight="bold" className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-semibold text-ink shadow-sm">
+          <WarningCircle weight="bold" className="h-5 w-5 shrink-0 text-coral" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -161,19 +161,19 @@ export default function EditorSubmissionsPage() {
 
                   {/* Earnings + Locked Rate Box */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                      <span className="text-xs font-bold text-muted">
+                    <div className="rounded-xl border border-border bg-mint/50 p-3">
+                      <span className="text-xs font-medium text-muted">
                         Counted Views
                       </span>
-                      <p className="font-display text-xl text-ink tabular-nums">
+                      <p className="font-display text-xl font-bold text-ink tabular-nums">
                         {sub.counted_views.toLocaleString()}
                       </p>
                     </div>
-                    <div className="rounded-btn border-2 border-ink bg-mint p-3">
-                      <span className="text-xs font-bold text-muted">
+                    <div className="rounded-xl border border-border bg-mint/50 p-3">
+                      <span className="text-xs font-medium text-muted">
                         Locked Rate / 1K
                       </span>
-                      <p className="font-display text-xl text-ink tabular-nums">
+                      <p className="font-display text-xl font-bold text-ink tabular-nums">
                         {formatMoneyCents(
                           sub.locked_rate_per_1k_cents ??
                             camp?.rate_per_1k_cents ??
@@ -182,11 +182,11 @@ export default function EditorSubmissionsPage() {
                         )}
                       </p>
                     </div>
-                    <div className="rounded-btn border-2 border-ink bg-sprout p-3">
-                      <span className="text-xs font-extrabold text-ink">
+                    <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-3">
+                      <span className="text-xs font-bold text-forest">
                         Clip Earnings
                       </span>
-                      <p className="font-display text-xl text-ink tabular-nums">
+                      <p className="font-display text-xl font-bold text-ink tabular-nums">
                         {formatMoneyCents(
                           sub.net_earnings_cents,
                           camp?.currency || 'USD'
@@ -197,17 +197,17 @@ export default function EditorSubmissionsPage() {
 
                   {/* Revision Request Box */}
                   {sub.status === 'revision_requested' && (
-                    <div className="rounded-card border-2 border-ink bg-sun p-4 space-y-3 shadow-btn">
-                      <span className="block text-xs font-extrabold uppercase text-ink">
+                    <div className="rounded-xl border border-sun/50 bg-sun/20 p-4 space-y-3">
+                      <span className="block text-xs font-bold uppercase tracking-wider text-ink">
                         Changes Requested by Page Owner
                       </span>
-                      <p className="text-sm font-bold text-ink">
+                      <p className="text-sm font-semibold text-ink">
                         &ldquo;{sub.revision_note}&rdquo;
                       </p>
                       <div className="space-y-2 pt-1">
                         <label
                           htmlFor={`resubmit-note-${sub.id}`}
-                          className="block text-xs font-extrabold text-ink"
+                          className="block text-xs font-bold text-ink"
                         >
                           What did you update in the new cut?
                         </label>
@@ -245,14 +245,14 @@ export default function EditorSubmissionsPage() {
 
                   {/* Rejection Reason Box */}
                   {sub.status === 'rejected' && sub.rejection_reason && (
-                    <div className="rounded-btn border-2 border-ink bg-coral p-4 text-sm font-bold text-ink">
-                      <strong>Reason not picked:</strong> {sub.rejection_reason}
+                    <div className="rounded-xl border border-coral/40 bg-coral/15 p-4 text-sm font-medium text-ink">
+                      <strong className="font-bold">Reason not picked:</strong> {sub.rejection_reason}
                     </div>
                   )}
 
                   {/* Posted URL */}
                   {sub.posted_url && (
-                    <div className="rounded-btn border-2 border-ink bg-mint p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="rounded-xl border border-border bg-mint/50 p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
                       <span className="font-extrabold text-ink">
                         Posted live at:{' '}
                         <a
@@ -286,14 +286,14 @@ export default function EditorSubmissionsPage() {
                         {snapshots.map((snap) => (
                           <div
                             key={snap.id}
-                            className="rounded-btn border-2 border-ink bg-paper p-3 text-xs space-y-2"
+                            className="rounded-xl border border-border bg-paper p-3 text-xs space-y-2 shadow-sm"
                           >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="space-x-2">
-                                <span className="font-extrabold text-ink tabular-nums">
+                                <span className="font-bold text-ink tabular-nums">
                                   {snap.views.toLocaleString()} views
                                 </span>
-                                <span className="text-muted font-bold">
+                                <span className="text-muted font-medium">
                                   ({new Date(snap.created_at).toLocaleDateString()} ·{' '}
                                   {snap.source})
                                 </span>
@@ -303,7 +303,7 @@ export default function EditorSubmissionsPage() {
                                   href={snap.proof_url}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="font-extrabold text-forest underline"
+                                  className="font-bold text-forest underline hover:text-emerald-700"
                                 >
                                   Screenshot Proof
                                 </a>
@@ -314,7 +314,7 @@ export default function EditorSubmissionsPage() {
                                       disputeSnapId === snap.id ? null : snap.id
                                     )
                                   }
-                                  className="inline-flex items-center gap-1 rounded-full border-2 border-ink bg-sun px-2.5 py-0.5 font-extrabold text-ink"
+                                  className="inline-flex items-center gap-1 rounded-full border border-sun/60 bg-sun/30 px-2.5 py-0.5 font-bold text-ink hover:bg-sun/50 transition"
                                 >
                                   <Flag weight="bold" className="h-3 w-3" />
                                   <span>Dispute Count</span>
@@ -323,7 +323,7 @@ export default function EditorSubmissionsPage() {
                             </div>
 
                             {disputeSnapId === snap.id && (
-                              <div className="rounded-btn border-2 border-ink bg-mint p-3 space-y-3 mt-2">
+                              <div className="rounded-xl border border-border bg-mint/50 p-3 space-y-3 mt-2">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <label
