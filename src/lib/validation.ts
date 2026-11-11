@@ -77,6 +77,8 @@ export const CampaignSchema = z
     post_deadline_hours: z.coerce.number().int().min(12).max(336).default(72),
     max_submissions_per_editor: z.coerce.number().int().min(1).max(25).default(3),
     status: CampaignStatusEnum.default('open'),
+    funded_escrow_cents: z.coerce.number().int().optional(),
+    held_escrow_cents: z.coerce.number().int().optional(),
   })
   .refine(
     (data) => (data.source_links && data.source_links.length > 0) || (data.instruction_assets && data.instruction_assets.length > 0),
@@ -153,6 +155,7 @@ export const SubmitPostUrlSchema = z.object({
   posted_platform: PlatformEnum,
   initial_views: z.coerce.number().int().min(0).default(0),
   proof_url: z.string().min(1, 'Screenshot proof URL is required'),
+  submitted_by: z.enum(['holder', 'editor']).default('holder'),
 });
 
 // 6. View Snapshot Update Schema

@@ -856,6 +856,17 @@ export default function CampaignDetailPage() {
               </div>
             </div>
 
+            {/* Escrow Funding Guarantee */}
+            <div className="rounded-xl border border-emerald-500/30 bg-sprout/20 p-2.5 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-ink">
+                <ShieldCheck weight="bold" className="h-4 w-4 text-forest shrink-0" />
+                <span>Pre-Funded Escrow Pool</span>
+              </div>
+              <span className="font-extrabold text-forest tabular-nums">
+                {formatMoneyCents(budget.fundedEscrowCents, campaign.currency)}
+              </span>
+            </div>
+
             {/* Remaining Budget Bar */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold text-ink">

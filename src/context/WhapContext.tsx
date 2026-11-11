@@ -132,12 +132,14 @@ interface WhapContextValue {
     posted_platform: PlatformId;
     initial_views: number;
     proof_url: string;
+    submitted_by?: 'holder' | 'editor';
   }) => Promise<Submission>;
   submitPostUrlForClip: (input: {
     submission_id: string;
     post_url: string;
     initial_views: number;
     proof_url: string;
+    submitted_by?: 'holder' | 'editor';
   }) => Promise<Submission>;
   addViewSnapshot: (input: {
     submission_id: string;
@@ -485,6 +487,8 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       id: `camp-${Date.now()}`,
       owner_id: currentUser.id,
       ...parsed,
+      funded_escrow_cents: parsed.funded_escrow_cents ?? parsed.total_budget_cap_cents,
+      held_escrow_cents: 0,
       created_at: nowIso,
       updated_at: nowIso,
     };
@@ -509,6 +513,8 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     const updated: Campaign = {
       ...existing,
       ...parsed,
+      funded_escrow_cents: parsed.funded_escrow_cents ?? existing.funded_escrow_cents ?? parsed.total_budget_cap_cents,
+      held_escrow_cents: existing.held_escrow_cents ?? 0,
       updated_at: new Date().toISOString(),
     };
 
@@ -721,6 +727,12 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Cannot select clip: Campaign total budget cap has been reached.');
         }
 
+        const clipEscrowHoldCents = campaign.max_payout_per_clip_cents;
+        const availableEscrow = budgetSummary.availableEscrowCents ?? budgetSummary.remainingBudgetCents;
+        if (availableEscrow < clipEscrowHoldCents) {
+          throw new Error('Cannot select clip: Insufficient campaign escrow funds available to reserve max payout.');
+        }
+
         const deadlineHours = campaign.post_deadline_hours || prev.settings.post_deadline_hours || 72;
         const postDeadlineIso = new Date(now.getTime() + deadlineHours * 3600 * 1000).toISOString();
 
@@ -742,6 +754,9 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
           locked_rate_per_1k_cents: campaign.rate_per_1k_cents,
           locked_base_fee_cents: campaign.base_fee_cents,
           locked_max_payout_cents: campaign.max_payout_per_clip_cents,
+          held_escrow_cents: clipEscrowHoldCents,
+          base_fee_paid: initialEarnings.netEarningsCents > 0,
+          base_fee_paid_at: initialEarnings.netEarningsCents > 0 ? nowIso : null,
           gross_earnings_cents: initialEarnings.grossEarningsCents,
           platform_fee_cents: initialEarnings.platformFeeCents,
           net_earnings_cents: initialEarnings.netEarningsCents,
@@ -763,12 +778,20 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
             amount_cents: initialEarnings.netEarningsCents,
             currency: campaign.currency,
             balance_after_cents: prevBal + initialEarnings.netEarningsCents,
-            description: `Clip selected (${sub.file_name}): ${formatMoneyCents(
+            description: `Guaranteed base fee paid instantly upon selection (${sub.file_name}): ${formatMoneyCents(
               initialEarnings.netEarningsCents,
               campaign.currency
-            )} base fee locked`,
+            )}`,
             created_by: currentUser?.id || campaign.owner_id,
             created_at: nowIso,
+          });
+
+          pushNotification(nextNotifications, prev.profiles, {
+            userId: sub.editor_id,
+            type: 'base_fee_paid',
+            title: `Guaranteed Base Fee Paid: ${formatMoneyCents(initialEarnings.netEarningsCents, campaign.currency)}!`,
+            body: `Your clip was selected for "${campaign.title}". The base fee has been automatically credited to your withdrawable wallet.`,
+            actionUrl: '/editor/payouts',
           });
         }
 
@@ -833,14 +856,49 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     const campaign = db.campaigns.find((c) => c.id === sub.campaign_id);
     if (!campaign) return;
     const holder = db.profiles.find((p) => p.id === campaign.owner_id);
+    const nowIso = new Date().toISOString();
 
     setDb((prev) => {
       const nextNotifications = [...prev.notifications];
+      const nextLedger = [...prev.ledger_entries];
+
+      // If base fee was 0, award a $5.00 (or 500 cents) kill fee to compensate editor
+      let killFeeCents = 0;
+      if (!sub.base_fee_paid && sub.net_earnings_cents === 0) {
+        killFeeCents = Math.min(500, campaign.max_payout_per_clip_cents || 500);
+        const prevBal = nextLedger
+          .filter((l) => l.user_id === sub.editor_id && l.currency === campaign.currency)
+          .reduce((s, l) => s + l.amount_cents, 0);
+
+        nextLedger.unshift({
+          id: `led-${Date.now()}`,
+          user_id: sub.editor_id,
+          campaign_id: campaign.id,
+          submission_id: sub.id,
+          payout_request_id: null,
+          entry_type: 'adjustment',
+          amount_cents: killFeeCents,
+          currency: campaign.currency,
+          balance_after_cents: prevBal + killFeeCents,
+          description: `Kill fee awarded: Page owner missed 72h posting deadline (${sub.file_name})`,
+          created_by: 'system',
+          created_at: nowIso,
+        });
+
+        pushNotification(nextNotifications, prev.profiles, {
+          userId: sub.editor_id,
+          type: 'kill_fee_paid',
+          title: `Kill Fee Secured: ${formatMoneyCents(killFeeCents, campaign.currency)}`,
+          body: `Because @${holder?.username || 'holder'} missed the posting deadline, a kill fee was credited to your wallet.`,
+          actionUrl: '/editor/payouts',
+        });
+      }
+
       pushNotification(nextNotifications, prev.profiles, {
         userId: sub.editor_id,
-        type: 'missed_posting_deadline',
-        title: `72h Posting Deadline Missed on ${sub.file_name}`,
-        body: `Account Holder @${holder?.username || 'holder'} missed the posting deadline. Their profile has been flagged and Admin notified.`,
+        type: 'rights_reverted',
+        title: `Full Clip Rights Reverted (${sub.file_name})`,
+        body: `The 72h posting deadline was missed. All copyright and distribution rights have reverted back to you.`,
         actionUrl: '/editor/submissions',
       });
 
@@ -850,7 +908,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
           userId: adm.id,
           type: 'missed_posting_deadline',
           title: `Account Holder @${holder?.username || 'holder'} missed 72h post deadline`,
-          body: `Selected clip ${sub.file_name} (ID: ${sub.id}) has no post URL by deadline.`,
+          body: `Selected clip ${sub.file_name} (ID: ${sub.id}) has no post URL by deadline. Rights reverted to editor.`,
           actionUrl: '/admin',
         });
       }
@@ -859,9 +917,17 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         ...prev,
         submissions: prev.submissions.map((s) =>
           s.id === submissionId
-            ? { ...s, missed_post_deadline: true, updated_at: new Date().toISOString() }
+            ? {
+                ...s,
+                missed_post_deadline: true,
+                rights_reverted: true,
+                kill_fee_paid_cents: killFeeCents > 0 ? killFeeCents : undefined,
+                held_escrow_cents: 0,
+                updated_at: nowIso,
+              }
             : s
         ),
+        ledger_entries: nextLedger,
         notifications: nextNotifications,
       };
     });
@@ -873,12 +939,16 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     posted_platform: PlatformId;
     initial_views: number;
     proof_url: string;
+    submitted_by?: 'holder' | 'editor';
   }): Promise<Submission> => {
     const parsed = SubmitPostUrlSchema.parse(input);
     const sub = db.submissions.find((s) => s.id === parsed.submission_id);
     if (!sub) throw new Error('Submission not found.');
     const campaign = db.campaigns.find((c) => c.id === sub.campaign_id);
     if (!campaign) throw new Error('Campaign not found.');
+
+    const actorRole: 'holder' | 'editor' =
+      parsed.submitted_by || (currentUser?.id === sub.editor_id ? 'editor' : 'holder');
 
     const tracker = getViewTracker('manual', parsed.posted_platform);
     const trackResult = await tracker.recordSnapshot({
@@ -888,7 +958,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       platform: parsed.posted_platform,
       reportedViews: parsed.initial_views,
       proofUrl: parsed.proof_url,
-      note: 'Initial post URL submission snapshot',
+      note: actorRole === 'editor' ? 'Editor reported live post URL' : 'Initial post URL submission snapshot',
       actorUserId: currentUser?.id || campaign.owner_id,
     });
 
@@ -914,6 +984,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       status: 'posted',
       posted_url: parsed.posted_url,
       posted_platform: parsed.posted_platform,
+      posted_by: actorRole,
       posted_at: nowIso,
       tracking_ends_at: trackingEndsIso,
       last_view_update_at: nowIso,
@@ -931,7 +1002,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       views: trackResult.views,
       source: 'manual',
       proof_url: trackResult.proofUrl,
-      note: 'Initial post URL submission',
+      note: actorRole === 'editor' ? 'Editor reported live post URL' : 'Initial post URL submission',
       verified: true,
       created_by: currentUser?.id || campaign.owner_id,
       created_at: nowIso,
@@ -962,13 +1033,30 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      pushNotification(nextNotifications, prev.profiles, {
-        userId: sub.editor_id,
-        type: 'post_url_added',
-        title: `Your clip is LIVE on ${parsed.posted_platform.toUpperCase()}!`,
-        body: `Post URL submitted: ${parsed.posted_url}. ${trackingDays}-day view tracking is now active.`,
-        actionUrl: '/editor/submissions',
-      });
+      if (actorRole === 'editor') {
+        pushNotification(nextNotifications, prev.profiles, {
+          userId: campaign.owner_id,
+          type: 'post_url_added',
+          title: `Live Post URL Added for "${sub.file_name}"`,
+          body: `Editor @${currentUser?.username || 'editor'} reported that this clip is live on your ${parsed.posted_platform} page. View tracking and escrow accrual have begun.`,
+          actionUrl: '/holder',
+        });
+        pushNotification(nextNotifications, prev.profiles, {
+          userId: sub.editor_id,
+          type: 'post_url_added',
+          title: `Live Post URL Verified for "${sub.file_name}"`,
+          body: `Your submitted live post URL has been recorded and view tracking is active.`,
+          actionUrl: '/editor/submissions',
+        });
+      } else {
+        pushNotification(nextNotifications, prev.profiles, {
+          userId: sub.editor_id,
+          type: 'post_url_added',
+          title: `Your clip is LIVE on ${parsed.posted_platform.toUpperCase()}!`,
+          body: `Post URL submitted: ${parsed.posted_url}. ${trackingDays}-day view tracking is now active.`,
+          actionUrl: '/editor/submissions',
+        });
+      }
 
       return {
         ...prev,
@@ -1635,6 +1723,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
     post_url: string;
     initial_views: number;
     proof_url: string;
+    submitted_by?: 'holder' | 'editor';
   }): Promise<Submission> => {
     return submitPostUrl({
       submission_id: input.submission_id,
@@ -1642,6 +1731,7 @@ export function WhapProvider({ children }: { children: React.ReactNode }) {
       posted_platform: 'tiktok',
       initial_views: input.initial_views,
       proof_url: input.proof_url,
+      submitted_by: input.submitted_by,
     });
   };
 

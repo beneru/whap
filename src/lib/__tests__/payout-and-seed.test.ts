@@ -14,6 +14,7 @@ import {
   OnboardingSchema,
   PayoutMethodSchema,
   ReviewActionSchema,
+  SubmitPostUrlSchema,
 } from '../validation';
 
 describe('whap Payout Math & Budget Cap Enforcement', () => {
@@ -272,6 +273,42 @@ describe('whap Seed Dataset & Zod Validation Invariants', () => {
         expect(asset.title).toBeTruthy();
         expect(asset.url).toBeTruthy();
       }
+    }
+  });
+});
+
+describe('whap Editor Payment Security & Escrow Protection', () => {
+  it('calculates campaign escrow summary including funded, held, and available escrow', () => {
+    const db = createSeedDatabase();
+    const camp = db.campaigns[0];
+    const summary = calculateCampaignBudgetSummary(camp, db.submissions);
+
+    expect(summary.fundedEscrowCents).toBeGreaterThanOrEqual(camp.total_budget_cap_cents);
+    expect(summary.availableEscrowCents).toBeGreaterThan(0);
+    expect(summary.availableEscrowCents).toBeLessThanOrEqual(summary.fundedEscrowCents);
+  });
+
+  it('validates editor-initiated post URL submission schema', () => {
+    const parsed = SubmitPostUrlSchema.parse({
+      submission_id: 'sub-1',
+      posted_url: 'https://www.tiktok.com/@apexclipspage/video/7182910291029',
+      posted_platform: 'tiktok',
+      initial_views: 12500,
+      proof_url: 'https://storage.whap.app/proofs/editor-spotted.png',
+      submitted_by: 'editor',
+    });
+
+    expect(parsed.submitted_by).toBe('editor');
+    expect(parsed.posted_platform).toBe('tiktok');
+    expect(parsed.initial_views).toBe(12500);
+  });
+
+  it('verifies all seeded campaigns have funded escrow balances', () => {
+    const db = createSeedDatabase();
+    for (const camp of db.campaigns) {
+      expect(camp.funded_escrow_cents).toBeDefined();
+      expect(camp.funded_escrow_cents).toBeGreaterThan(0);
+      expect(camp.funded_escrow_cents).toBeGreaterThanOrEqual(camp.total_budget_cap_cents);
     }
   });
 });

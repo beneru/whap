@@ -37,7 +37,11 @@ export type NotificationType =
   | 'payout_requested'
   | 'payout_paid'
   | 'dispute_opened'
-  | 'dispute_resolved';
+  | 'dispute_resolved'
+  | 'escrow_locked'
+  | 'base_fee_paid'
+  | 'kill_fee_paid'
+  | 'rights_reverted';
 
 export interface PayoutMethodDetails {
   type: PayoutMethodType;
@@ -118,6 +122,8 @@ export interface Campaign {
   post_deadline_hours: number;
   max_submissions_per_editor: number;
   status: CampaignStatus;
+  funded_escrow_cents?: number;
+  held_escrow_cents?: number;
   created_at: string;
   updated_at: string;
 }
@@ -146,9 +152,15 @@ export interface Submission {
   locked_rate_per_1k_cents: number | null;
   locked_base_fee_cents: number | null;
   locked_max_payout_cents: number | null;
+  held_escrow_cents?: number;
+  base_fee_paid?: boolean;
+  base_fee_paid_at?: string | null;
+  rights_reverted?: boolean;
+  kill_fee_paid_cents?: number;
   posted_url: string | null;
   posted_platform: PlatformId | null;
   posted_at: string | null;
+  posted_by?: 'holder' | 'editor';
   tracking_ends_at: string | null;
   last_view_update_at: string | null;
   counted_views: number;

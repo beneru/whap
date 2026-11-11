@@ -100,6 +100,9 @@ export interface CampaignBudgetSummary {
   percentUsed: number;
   isExhausted: boolean;
   selectedClipsCount: number;
+  fundedEscrowCents: number;
+  heldEscrowCents: number;
+  availableEscrowCents: number;
 }
 
 export function calculateCampaignBudgetSummary(
@@ -121,6 +124,12 @@ export function calculateCampaignBudgetSummary(
       ? Math.min(100, Math.round((accruedBudgetCents / campaign.total_budget_cap_cents) * 100))
       : 0;
 
+  const fundedEscrowCents = campaign.funded_escrow_cents ?? campaign.total_budget_cap_cents;
+  const heldEscrowCents = campaignSubs
+    .filter((s) => s.status === 'selected' || s.status === 'posted')
+    .reduce((sum, s) => sum + (s.held_escrow_cents || 0), 0);
+  const availableEscrowCents = Math.max(0, fundedEscrowCents - accruedBudgetCents - heldEscrowCents);
+
   return {
     totalBudgetCapCents: campaign.total_budget_cap_cents,
     accruedBudgetCents,
@@ -128,6 +137,9 @@ export function calculateCampaignBudgetSummary(
     percentUsed,
     isExhausted: remainingBudgetCents <= 0,
     selectedClipsCount: campaignSubs.length,
+    fundedEscrowCents,
+    heldEscrowCents,
+    availableEscrowCents,
   };
 }
 

@@ -304,6 +304,7 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
         base_fee_cents: Math.round(Number(baseFeeDollars) * 100),
         max_payout_per_clip_cents: Math.round(Number(maxPayoutDollars) * 100),
         total_budget_cap_cents: Math.round(Number(budgetCapDollars) * 100),
+        funded_escrow_cents: Math.round(Number(budgetCapDollars) * 100),
         clips_needed: Number(clipsNeeded),
         submission_deadline: new Date(submissionDeadline).toISOString(),
         view_tracking_window_days: Number(trackingWindowDays),
