@@ -37,15 +37,26 @@ export const UpdateProfileSchema = z.object({
   sample_clip_urls: z.array(z.string().url()).max(5).default([]),
 });
 
+export const InstructionAssetTypeEnum = z.enum(['link', 'image', 'audio', 'file']);
+
+export const InstructionAssetSchema = z.object({
+  id: z.string().min(1),
+  type: InstructionAssetTypeEnum,
+  title: z.string().trim().min(1, 'Asset title is required').max(120),
+  url: z.string().min(1, 'Asset URL or upload data is required'),
+  file_name: z.string().optional(),
+  file_size_bytes: z.number().int().optional(),
+  note: z.string().max(500).optional(),
+});
+
 // 2. Campaign Schema
 export const CampaignSchema = z
   .object({
     title: z.string().trim().min(4, 'Campaign title must be at least 4 characters').max(120),
     brief: z.string().trim().min(15, 'Provide clear editing instructions (at least 15 chars)').max(4000),
     niche: z.string().trim().min(2, 'Select or enter a niche').max(40),
-    source_links: z
-      .array(z.string().url('Each source link must be a valid URL (Drive, YouTube, etc.)'))
-      .min(1, 'Provide at least 1 source material link'),
+    source_links: z.array(z.string()).default([]),
+    instruction_assets: z.array(InstructionAssetSchema).default([]),
     platforms: z.array(PlatformEnum).min(1, 'Select at least 1 target platform'),
     target_page_handles: z
       .array(z.string().trim().min(2, 'Enter a valid page handle e.g. @dailyclips'))
@@ -67,6 +78,13 @@ export const CampaignSchema = z
     max_submissions_per_editor: z.coerce.number().int().min(1).max(25).default(3),
     status: CampaignStatusEnum.default('open'),
   })
+  .refine(
+    (data) => (data.source_links && data.source_links.length > 0) || (data.instruction_assets && data.instruction_assets.length > 0),
+    {
+      message: 'Provide at least 1 instruction asset (link, photo, or audio)',
+      path: ['source_links'],
+    }
+  )
   .refine((data) => data.max_length_sec >= data.min_length_sec, {
     message: 'Max length must be greater than or equal to min length',
     path: ['max_length_sec'],

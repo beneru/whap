@@ -10,6 +10,7 @@ import { createSeedDatabase } from '../seed-data';
 import {
   CampaignSchema,
   CreateSubmissionSchema,
+  InstructionAssetSchema,
   OnboardingSchema,
   PayoutMethodSchema,
   ReviewActionSchema,
@@ -195,5 +196,82 @@ describe('whap Seed Dataset & Zod Validation Invariants', () => {
         gcash_name: 'Kenji Santos',
       }).type
     ).toBe('gcash');
+  });
+
+  it('validates diverse instruction assets (links, photos, audio, files)', () => {
+    // Valid link asset
+    const linkAsset = InstructionAssetSchema.parse({
+      id: 'asset-link-1',
+      type: 'link',
+      title: 'Google Drive 4K Raw Footages',
+      url: 'https://drive.google.com/drive/folders/test',
+      note: 'Starts at minute 4',
+    });
+    expect(linkAsset.type).toBe('link');
+
+    // Valid photo asset
+    const imageAsset = InstructionAssetSchema.parse({
+      id: 'asset-img-1',
+      type: 'image',
+      title: 'Brand Corner Logo (Transparent PNG)',
+      url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe',
+      file_name: 'logo.png',
+      file_size_bytes: 524288,
+      note: 'Pin to top right',
+    });
+    expect(imageAsset.type).toBe('image');
+    expect(imageAsset.file_size_bytes).toBe(524288);
+
+    // Valid audio stem asset
+    const audioAsset = InstructionAssetSchema.parse({
+      id: 'asset-aud-1',
+      type: 'audio',
+      title: 'Upbeat Background Track',
+      url: 'https://cdn.freesound.org/previews/test.mp3',
+      file_name: 'music-bed.mp3',
+      note: 'Duck volume during speaking',
+    });
+    expect(audioAsset.type).toBe('audio');
+
+    // Rejects empty title or empty url
+    expect(() =>
+      InstructionAssetSchema.parse({
+        id: 'bad-1',
+        type: 'link',
+        title: '',
+        url: 'https://test.com',
+      })
+    ).toThrow();
+
+    expect(() =>
+      InstructionAssetSchema.parse({
+        id: 'bad-2',
+        type: 'audio',
+        title: 'Missing URL',
+        url: '',
+      })
+    ).toThrow();
+  });
+
+  it('verifies seeded campaigns contain diverse instruction assets (links, photos, audio)', () => {
+    const db = createSeedDatabase();
+    expect(db.campaigns.length).toBeGreaterThan(0);
+
+    for (const campaign of db.campaigns) {
+      expect(campaign.instruction_assets).toBeDefined();
+      expect(campaign.instruction_assets!.length).toBeGreaterThanOrEqual(2);
+
+      const types = campaign.instruction_assets!.map((a) => a.type);
+      // Ensure at least links and photos or audio are represented
+      expect(types).toContain('link');
+      const hasMedia = types.includes('image') || types.includes('audio');
+      expect(hasMedia).toBe(true);
+
+      for (const asset of campaign.instruction_assets!) {
+        expect(asset.id).toBeTruthy();
+        expect(asset.title).toBeTruthy();
+        expect(asset.url).toBeTruthy();
+      }
+    }
   });
 });

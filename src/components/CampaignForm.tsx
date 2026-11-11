@@ -1,10 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import {
+  ArrowSquareOut,
+  CheckCircle,
+  FileText,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  MusicNotes,
+  Plus,
+  Trash,
+  UploadSimple,
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
-import { Campaign, CampaignStatus, CurrencyCode, PlatformType } from '@/lib/types';
+import {
+  Campaign,
+  CampaignStatus,
+  CurrencyCode,
+  InstructionAsset,
+  InstructionAssetType,
+  PlatformType,
+} from '@/lib/types';
 
 interface CampaignFormProps {
   existingCampaign?: Campaign;
@@ -16,6 +34,13 @@ const ALL_PLATFORMS: { value: PlatformType; label: string }[] = [
   { value: 'youtube_shorts', label: 'YouTube Shorts' },
   { value: 'fb_reels', label: 'FB Reels' },
 ];
+
+function formatBytes(bytes?: number): string {
+  if (!bytes || bytes <= 0) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export function CampaignForm({ existingCampaign }: CampaignFormProps) {
   const router = useRouter();
@@ -29,10 +54,52 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
     existingCampaign?.brief ??
       'Cut 30 to 55 second vertical clips from our latest podcast episode. Open with the sharpest statement in the first 2 seconds and keep captions easy to read.'
   );
-  const [sourceLinksText, setSourceLinksText] = useState(
-    existingCampaign?.source_links.join('\n') ??
-      'https://drive.google.com/drive/folders/raw-podcast-ep45'
-  );
+
+  // Diverse instruction assets state (links, photos, audio, files)
+  const [instructionAssets, setInstructionAssets] = useState<InstructionAsset[]>(() => {
+    if (existingCampaign?.instruction_assets && existingCampaign.instruction_assets.length > 0) {
+      return existingCampaign.instruction_assets;
+    }
+    if (existingCampaign?.source_links && existingCampaign.source_links.length > 0) {
+      return existingCampaign.source_links.map((link, idx) => ({
+        id: `init-asset-${idx}-${Date.now()}`,
+        type: 'link' as InstructionAssetType,
+        title: `Footage & Source Link #${idx + 1}`,
+        url: link,
+        note: 'Primary editing source footage',
+      }));
+    }
+    return [
+      {
+        id: 'init-asset-1',
+        type: 'link' as InstructionAssetType,
+        title: 'Podcast Raw 4K Multicam (Google Drive)',
+        url: 'https://drive.google.com/drive/folders/raw-podcast-ep45',
+        note: 'Episode starts at 04:12. Pick the most controversial 45 seconds.',
+      },
+      {
+        id: 'init-asset-2',
+        type: 'image' as InstructionAssetType,
+        title: 'Host & Guest Cover Still (Reference)',
+        url: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80',
+        file_name: 'cover-reference.jpg',
+        note: 'Match color grade to this studio reference photo.',
+      },
+    ];
+  });
+
+  // State for new asset builder
+  const [newAssetType, setNewAssetType] = useState<InstructionAssetType>('link');
+  const [newAssetTitle, setNewAssetTitle] = useState('');
+  const [newAssetUrl, setNewAssetUrl] = useState('');
+  const [newAssetNote, setNewAssetNote] = useState('');
+  const [newAssetFileName, setNewAssetFileName] = useState('');
+  const [newAssetFileSize, setNewAssetFileSize] = useState<number | undefined>(undefined);
+  const [assetDraftError, setAssetDraftError] = useState<string | null>(null);
+
+  const imageFileInputRef = useRef<HTMLInputElement | null>(null);
+  const audioFileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [platforms, setPlatforms] = useState<PlatformType[]>(
     existingCampaign?.platforms ?? ['tiktok', 'ig_reels', 'youtube_shorts']
   );
@@ -105,15 +172,115 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
     );
   };
 
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAssetDraftError(null);
+    if (!file.type.startsWith('image/')) {
+      setAssetDraftError('Please choose a valid image file (PNG, JPG, SVG, WebP).');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setAssetDraftError('Image file is too large (maximum 15MB).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setNewAssetUrl(result);
+      setNewAssetFileName(file.name);
+      setNewAssetFileSize(file.size);
+      if (!newAssetTitle) {
+        setNewAssetTitle(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    };
+    reader.onerror = () => {
+      setAssetDraftError('Failed to read image file.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAudioFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAssetDraftError(null);
+    if (!file.type.startsWith('audio/')) {
+      setAssetDraftError('Please choose a valid audio file (MP3, WAV, AAC, M4A).');
+      return;
+    }
+    if (file.size > 35 * 1024 * 1024) {
+      setAssetDraftError('Audio file is too large (maximum 35MB).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setNewAssetUrl(result);
+      setNewAssetFileName(file.name);
+      setNewAssetFileSize(file.size);
+      if (!newAssetTitle) {
+        setNewAssetTitle(file.name.replace(/\.[^/.]+$/, ''));
+      }
+    };
+    reader.onerror = () => {
+      setAssetDraftError('Failed to read audio file.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddAsset = () => {
+    setAssetDraftError(null);
+    const trimmedTitle = newAssetTitle.trim();
+    const trimmedUrl = newAssetUrl.trim();
+
+    if (!trimmedTitle) {
+      setAssetDraftError('Please enter a descriptive title for this instruction asset.');
+      return;
+    }
+    if (!trimmedUrl) {
+      setAssetDraftError('Please upload a file or enter a valid URL/link.');
+      return;
+    }
+
+    const newAsset: InstructionAsset = {
+      id: `asset-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type: newAssetType,
+      title: trimmedTitle,
+      url: trimmedUrl,
+      file_name: newAssetFileName.trim() || undefined,
+      file_size_bytes: newAssetFileSize,
+      note: newAssetNote.trim() || undefined,
+    };
+
+    setInstructionAssets((prev) => [...prev, newAsset]);
+
+    // Reset draft fields
+    setNewAssetTitle('');
+    setNewAssetUrl('');
+    setNewAssetNote('');
+    setNewAssetFileName('');
+    setNewAssetFileSize(undefined);
+    if (imageFileInputRef.current) imageFileInputRef.current.value = '';
+    if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+  };
+
+  const handleRemoveAsset = (assetId: string) => {
+    setInstructionAssets((prev) => prev.filter((a) => a.id !== assetId));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
     try {
-      const source_links = sourceLinksText
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean);
+      if (instructionAssets.length === 0) {
+        setErrorMsg('Please attach at least 1 instruction asset (link, photo, or audio) for editors.');
+        return;
+      }
+
+      const source_links = instructionAssets.map((a) => a.url);
       const target_page_handles = targetHandlesText
         .split(',')
         .map((s) => s.trim())
@@ -124,6 +291,7 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
         brief,
         niche,
         source_links,
+        instruction_assets: instructionAssets,
         platforms,
         target_page_handles,
         aspect_ratio: aspectRatio,
@@ -234,21 +402,398 @@ export function CampaignForm({ existingCampaign }: CampaignFormProps) {
           />
         </div>
 
-        <div className="sm:col-span-2">
-          <label
-            htmlFor="camp-sources"
-            className="mb-1.5 block text-sm font-extrabold text-ink"
-          >
-            Source footage links (Drive, YouTube, Dropbox: one per line)
-          </label>
-          <textarea
-            id="camp-sources"
-            rows={2}
-            required
-            value={sourceLinksText}
-            onChange={(e) => setSourceLinksText(e.target.value)}
-            className="input-sticker"
-          />
+        {/* Diverse Instruction Materials & Assets Studio */}
+        <div className="sm:col-span-2 rounded-2xl border-2 border-ink bg-mint/40 p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b-2 border-ink pb-3">
+            <div>
+              <span className="chip-sticker bg-sprout text-ink">
+                Instruction Materials &amp; Media
+              </span>
+              <h3 className="mt-1 font-display text-lg text-ink">
+                Upload Links, Photos &amp; Audio for Editors
+              </h3>
+              <p className="text-xs text-muted">
+                Supply footage links, photo references, logo overlays, or audio beds for editors to use.
+              </p>
+            </div>
+            <span className="self-start sm:self-auto rounded-full border border-border bg-paper px-3 py-1 text-xs font-bold text-ink tabular-nums">
+              {instructionAssets.length} asset{instructionAssets.length === 1 ? '' : 's'} attached
+            </span>
+          </div>
+
+          {/* Asset Creator Card */}
+          <div className="rounded-xl border border-border bg-paper p-4 space-y-3">
+            <span className="block text-xs font-extrabold uppercase text-ink">
+              Attach New Instruction Asset
+            </span>
+
+            {/* Type tabs */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAssetType('link');
+                  setAssetDraftError(null);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition border border-border ${
+                  newAssetType === 'link'
+                    ? 'bg-sprout text-ink border-ink'
+                    : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                }`}
+              >
+                <LinkIcon weight="bold" className="h-4 w-4" />
+                <span>Web Link</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAssetType('image');
+                  setAssetDraftError(null);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition border border-border ${
+                  newAssetType === 'image'
+                    ? 'bg-sprout text-ink border-ink'
+                    : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                }`}
+              >
+                <ImageIcon weight="bold" className="h-4 w-4" />
+                <span>Photo / Graphic</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAssetType('audio');
+                  setAssetDraftError(null);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition border border-border ${
+                  newAssetType === 'audio'
+                    ? 'bg-sprout text-ink border-ink'
+                    : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                }`}
+              >
+                <MusicNotes weight="bold" className="h-4 w-4" />
+                <span>Audio Track</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAssetType('file');
+                  setAssetDraftError(null);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition border border-border ${
+                  newAssetType === 'file'
+                    ? 'bg-sprout text-ink border-ink'
+                    : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                }`}
+              >
+                <FileText weight="bold" className="h-4 w-4" />
+                <span>Document / Guide</span>
+              </button>
+            </div>
+
+            {assetDraftError && (
+              <div className="flex items-center gap-2 rounded-lg border border-coral/50 bg-coral/15 px-3 py-2 text-xs font-bold text-ink">
+                <WarningCircle weight="bold" className="h-4 w-4 text-coral shrink-0" />
+                <span>{assetDraftError}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-ink">
+                  Asset Title
+                </label>
+                <input
+                  type="text"
+                  placeholder={
+                    newAssetType === 'link'
+                      ? 'e.g. 4K Raw Multicam Footage (Google Drive)'
+                      : newAssetType === 'image'
+                      ? 'e.g. Brand Logo Overlay (Transparent PNG)'
+                      : newAssetType === 'audio'
+                      ? 'e.g. High-Energy Lo-Fi Intro Beat'
+                      : 'e.g. Creator Brand Style Sheet & Captions'
+                  }
+                  value={newAssetTitle}
+                  onChange={(e) => setNewAssetTitle(e.target.value)}
+                  className="input-sticker text-xs"
+                />
+              </div>
+
+              {/* Source/Upload Field based on type */}
+              <div>
+                {newAssetType === 'link' && (
+                  <>
+                    <label className="mb-1 block text-xs font-bold text-ink">
+                      Web URL (Drive, Dropbox, YouTube, Loom)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={newAssetUrl}
+                      onChange={(e) => setNewAssetUrl(e.target.value)}
+                      className="input-sticker text-xs"
+                    />
+                  </>
+                )}
+
+                {newAssetType === 'image' && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-ink">
+                      Upload Photo or Provide Image URL
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={imageFileInputRef}
+                        accept="image/*"
+                        onChange={handleImageFileUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => imageFileInputRef.current?.click()}
+                        className="btn-sticker btn-secondary py-1.5 px-3 text-xs"
+                      >
+                        <UploadSimple weight="bold" className="h-4 w-4" />
+                        <span>Upload Photo</span>
+                      </button>
+                      <input
+                        type="text"
+                        placeholder="Or paste image URL (https://...)"
+                        value={newAssetUrl.startsWith('data:') ? '' : newAssetUrl}
+                        onChange={(e) => {
+                          setNewAssetUrl(e.target.value);
+                          setNewAssetFileName('');
+                          setNewAssetFileSize(undefined);
+                        }}
+                        className="input-sticker text-xs flex-1"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {newAssetType === 'audio' && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-ink">
+                      Upload Audio File or Audio Stream Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={audioFileInputRef}
+                        accept="audio/*"
+                        onChange={handleAudioFileUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => audioFileInputRef.current?.click()}
+                        className="btn-sticker btn-secondary py-1.5 px-3 text-xs"
+                      >
+                        <UploadSimple weight="bold" className="h-4 w-4" />
+                        <span>Upload Audio</span>
+                      </button>
+                      <input
+                        type="text"
+                        placeholder="Or paste audio URL (MP3/WAV)"
+                        value={newAssetUrl.startsWith('data:') ? '' : newAssetUrl}
+                        onChange={(e) => {
+                          setNewAssetUrl(e.target.value);
+                          setNewAssetFileName('');
+                          setNewAssetFileSize(undefined);
+                        }}
+                        className="input-sticker text-xs flex-1"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {newAssetType === 'file' && (
+                  <>
+                    <label className="mb-1 block text-xs font-bold text-ink">
+                      File / Document URL (PDF, Docs, Notion)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://docs.google.com/..."
+                      value={newAssetUrl}
+                      onChange={(e) => setNewAssetUrl(e.target.value)}
+                      className="input-sticker text-xs"
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Live Preview for Photo / Audio if URL is loaded */}
+              {newAssetType === 'image' && newAssetUrl && (
+                <div className="sm:col-span-2 rounded-xl border border-border bg-mint/30 p-2.5 flex items-center gap-3">
+                  <img
+                    src={newAssetUrl}
+                    alt="Upload preview"
+                    className="h-16 w-16 object-cover rounded-lg border border-border bg-paper"
+                  />
+                  <div className="text-xs space-y-0.5">
+                    <p className="font-bold text-ink">
+                      {newAssetFileName || 'Image preview ready'}
+                    </p>
+                    {newAssetFileSize && (
+                      <p className="text-muted tabular-nums">
+                        {formatBytes(newAssetFileSize)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {newAssetType === 'audio' && newAssetUrl && (
+                <div className="sm:col-span-2 rounded-xl border border-border bg-mint/30 p-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-ink">
+                      {newAssetFileName || 'Audio track loaded'}
+                    </span>
+                    {newAssetFileSize && (
+                      <span className="text-muted tabular-nums">
+                        {formatBytes(newAssetFileSize)}
+                      </span>
+                    )}
+                  </div>
+                  <audio controls src={newAssetUrl} className="w-full h-8" />
+                </div>
+              )}
+
+              {/* Note for editor */}
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-bold text-ink">
+                  Usage Instructions for Editors (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Place logo in top-right corner with 80% opacity, duck BGM under speech."
+                  value={newAssetNote}
+                  onChange={(e) => setNewAssetNote(e.target.value)}
+                  className="input-sticker text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={handleAddAsset}
+                className="btn-sticker btn-primary py-2 px-4 text-xs"
+              >
+                <Plus weight="bold" className="h-4 w-4" />
+                <span>Attach Asset</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Attached Assets List */}
+          <div className="space-y-2">
+            <span className="block text-xs font-extrabold uppercase text-ink">
+              Attached Campaign Assets ({instructionAssets.length})
+            </span>
+
+            {instructionAssets.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-paper/60 p-4 text-center text-xs text-muted">
+                No instruction assets attached yet. Add footage links, photos, or audio beds above so editors have creative materials.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {instructionAssets.map((asset) => {
+                  const isImage = asset.type === 'image';
+                  const isAudio = asset.type === 'audio';
+                  const isLink = asset.type === 'link';
+
+                  return (
+                    <div
+                      key={asset.id}
+                      className="rounded-xl border border-border bg-paper p-3 space-y-2 relative flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`chip-sticker text-[10px] py-0.5 px-2 ${
+                                isImage
+                                  ? 'bg-sky text-ink'
+                                  : isAudio
+                                  ? 'bg-sun text-ink'
+                                  : isLink
+                                  ? 'bg-sprout text-ink'
+                                  : 'bg-mint text-ink'
+                              }`}
+                            >
+                              {asset.type.toUpperCase()}
+                            </span>
+                            {asset.file_size_bytes && (
+                              <span className="text-[10px] font-semibold text-muted tabular-nums">
+                                {formatBytes(asset.file_size_bytes)}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAsset(asset.id)}
+                            className="text-muted hover:text-coral transition p-1"
+                            title="Remove asset"
+                          >
+                            <Trash weight="bold" className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <p className="font-bold text-sm text-ink line-clamp-1">
+                          {asset.title}
+                        </p>
+
+                        {/* Media preview */}
+                        {isImage && (
+                          <div className="mt-1">
+                            <img
+                              src={asset.url}
+                              alt={asset.title}
+                              className="h-24 w-full object-cover rounded-lg border border-border bg-mint/20"
+                            />
+                          </div>
+                        )}
+
+                        {isAudio && (
+                          <div className="mt-1">
+                            <audio controls src={asset.url} className="w-full h-8" />
+                          </div>
+                        )}
+
+                        {!isImage && !isAudio && (
+                          <a
+                            href={asset.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-forest hover:underline truncate max-w-full"
+                          >
+                            <span className="truncate">{asset.url}</span>
+                            <ArrowSquareOut weight="bold" className="h-3.5 w-3.5 shrink-0" />
+                          </a>
+                        )}
+
+                        {asset.note && (
+                          <div className="rounded-lg bg-mint/60 border border-border/50 p-2 text-xs text-ink space-y-0.5">
+                            <span className="font-extrabold text-[10px] uppercase text-muted block">
+                              Editor Instruction
+                            </span>
+                            <p className="text-xs">{asset.note}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="sm:col-span-2 space-y-2">

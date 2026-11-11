@@ -6,17 +6,25 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowSquareOut,
+  Check,
   CheckCircle,
   Clock,
+  Copy,
+  DownloadSimple,
+  FileText,
+  Image as ImageIcon,
   LinkSimple,
+  MusicNotes,
   NotePencil,
   Pause,
   Play,
   ShieldCheck,
+  SpeakerHigh,
   UploadSimple,
   WarningCircle,
 } from '@phosphor-icons/react';
 import { useWhap } from '@/context/WhapContext';
+import { InstructionAsset } from '@/lib/types';
 import {
   calculateAccountHolderReputation,
   calculateCampaignBudgetSummary,
@@ -56,6 +64,20 @@ export default function CampaignDetailPage() {
   const [notes, setNotes] = useState(
     'Hook hits at 0:01.2 with bold centered captions.'
   );
+
+  // Diverse instruction assets filter & copy state
+  const [assetFilter, setAssetFilter] = useState<'all' | 'link' | 'image' | 'audio' | 'file'>('all');
+  const [copiedAssetId, setCopiedAssetId] = useState<string | null>(null);
+
+  const handleCopyAssetLink = (assetId: string, url: string) => {
+    try {
+      navigator.clipboard.writeText(url);
+      setCopiedAssetId(assetId);
+      setTimeout(() => setCopiedAssetId(null), 2000);
+    } catch {
+      // ignore
+    }
+  };
 
   // Resumable TUS upload state
   const [uploadProgress, setUploadProgress] =
@@ -103,6 +125,27 @@ export default function CampaignDetailPage() {
     db.payout_requests,
     db.disputes
   );
+
+  const campaignAssets: InstructionAsset[] =
+    campaign.instruction_assets && campaign.instruction_assets.length > 0
+      ? campaign.instruction_assets
+      : campaign.source_links.map((url, idx) => ({
+          id: `legacy-link-${idx}`,
+          type: 'link',
+          title: `Raw Footage Link #${idx + 1}`,
+          url,
+          note: 'Primary editing source footage',
+        }));
+
+  const filteredAssets =
+    assetFilter === 'all'
+      ? campaignAssets
+      : campaignAssets.filter((a) => a.type === assetFilter);
+
+  const linkCount = campaignAssets.filter((a) => a.type === 'link').length;
+  const imageCount = campaignAssets.filter((a) => a.type === 'image').length;
+  const audioCount = campaignAssets.filter((a) => a.type === 'audio').length;
+  const fileCount = campaignAssets.filter((a) => a.type === 'file').length;
 
   const mySubmissions = currentUser
     ? db.submissions.filter(
@@ -303,24 +346,233 @@ export default function CampaignDetailPage() {
               </div>
             </div>
 
-            {/* Source Footage Links */}
-            <div className="border-t-2 border-ink pt-4 space-y-2">
-              <h3 className="text-sm font-extrabold uppercase text-ink">
-                Raw Footage Links
-              </h3>
-              <div className="space-y-2">
-                {campaign.source_links.map((url, idx) => (
-                  <a
-                    key={idx}
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-between rounded-xl border border-border bg-mint/50 px-4 py-3 text-xs font-semibold text-forest hover:bg-sprout/20 hover:text-ink transition"
+            {/* Instruction Materials & Creative Assets Hub */}
+            <div className="border-t-2 border-ink pt-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="chip-sticker bg-sprout text-ink">
+                      Instruction Materials &amp; Media
+                    </span>
+                    <span className="text-xs font-bold text-muted tabular-nums">
+                      {campaignAssets.length} asset{campaignAssets.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <h3 className="mt-1 font-display text-lg text-ink">
+                    Footage, Reference Photos &amp; Audio Stems
+                  </h3>
+                  <p className="text-xs text-muted">
+                    Materials provided by the Account Holder for this campaign.
+                  </p>
+                </div>
+
+                {/* Filter chips */}
+                <div className="flex flex-wrap gap-1.5 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setAssetFilter('all')}
+                    className={`rounded-full px-3 py-1 text-xs font-bold transition border border-border ${
+                      assetFilter === 'all'
+                        ? 'bg-ink text-paper border-ink'
+                        : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                    }`}
                   >
-                    <span className="truncate">{url}</span>
-                    <ArrowSquareOut weight="bold" className="h-4 w-4 shrink-0 ml-2" />
-                  </a>
-                ))}
+                    All ({campaignAssets.length})
+                  </button>
+                  {linkCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAssetFilter('link')}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition border border-border ${
+                        assetFilter === 'link'
+                          ? 'bg-sprout text-ink border-ink'
+                          : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                      }`}
+                    >
+                      Links ({linkCount})
+                    </button>
+                  )}
+                  {imageCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAssetFilter('image')}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition border border-border ${
+                        assetFilter === 'image'
+                          ? 'bg-sky text-ink border-ink'
+                          : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                      }`}
+                    >
+                      Photos ({imageCount})
+                    </button>
+                  )}
+                  {audioCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAssetFilter('audio')}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition border border-border ${
+                        assetFilter === 'audio'
+                          ? 'bg-sun text-ink border-ink'
+                          : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                      }`}
+                    >
+                      Audio ({audioCount})
+                    </button>
+                  )}
+                  {fileCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAssetFilter('file')}
+                      className={`rounded-full px-3 py-1 text-xs font-bold transition border border-border ${
+                        assetFilter === 'file'
+                          ? 'bg-mint text-ink border-ink'
+                          : 'bg-paper text-muted hover:text-ink hover:bg-mint'
+                      }`}
+                    >
+                      Docs ({fileCount})
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Assets list */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {filteredAssets.map((asset) => {
+                  const isImage = asset.type === 'image';
+                  const isAudio = asset.type === 'audio';
+                  const isLink = asset.type === 'link';
+
+                  return (
+                    <div
+                      key={asset.id}
+                      className="rounded-xl border border-border bg-paper p-4 space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`chip-sticker text-[10px] py-0.5 px-2 ${
+                              isImage
+                                ? 'bg-sky text-ink'
+                                : isAudio
+                                ? 'bg-sun text-ink'
+                                : isLink
+                                ? 'bg-sprout text-ink'
+                                : 'bg-mint text-ink'
+                            }`}
+                          >
+                            {isImage
+                              ? 'PHOTO / STILL'
+                              : isAudio
+                              ? 'AUDIO STEM'
+                              : isLink
+                              ? 'SOURCE LINK'
+                              : 'DOCUMENT'}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {asset.file_size_bytes && (
+                              <span className="text-[10px] font-semibold text-muted tabular-nums">
+                                {(asset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleCopyAssetLink(asset.id, asset.url)}
+                              className="text-muted hover:text-ink p-1 transition"
+                              title="Copy URL"
+                            >
+                              {copiedAssetId === asset.id ? (
+                                <Check weight="bold" className="h-4 w-4 text-forest" />
+                              ) : (
+                                <Copy weight="bold" className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-sm text-ink leading-snug">
+                            {asset.title}
+                          </h4>
+                          {asset.file_name && (
+                            <p className="text-[11px] text-muted truncate mt-0.5">
+                              {asset.file_name}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Visual preview according to type */}
+                        {isImage && (
+                          <div className="rounded-lg border border-border overflow-hidden bg-mint/10">
+                            <img
+                              src={asset.url}
+                              alt={asset.title}
+                              className="w-full h-36 object-cover hover:scale-105 transition duration-300"
+                            />
+                          </div>
+                        )}
+
+                        {isAudio && (
+                          <div className="rounded-lg border border-border bg-mint/30 p-2.5 space-y-1">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                              <SpeakerHigh weight="bold" className="h-4 w-4 text-forest shrink-0" />
+                              <span>Listen to Audio Track</span>
+                            </div>
+                            <audio
+                              controls
+                              preload="none"
+                              src={asset.url}
+                              className="w-full h-8"
+                            />
+                          </div>
+                        )}
+
+                        {asset.note && (
+                          <div className="rounded-lg bg-mint/60 border border-border/60 p-2.5 text-xs text-ink space-y-0.5">
+                            <span className="font-extrabold text-[10px] uppercase text-muted block">
+                              Usage Note
+                            </span>
+                            <p className="text-xs leading-relaxed">{asset.note}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                        <a
+                          href={asset.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-sticker btn-secondary py-1.5 px-3 text-xs inline-flex items-center gap-1.5"
+                        >
+                          {isImage ? (
+                            <>
+                              <ArrowSquareOut weight="bold" className="h-3.5 w-3.5" />
+                              <span>View Full Photo</span>
+                            </>
+                          ) : isAudio ? (
+                            <>
+                              <DownloadSimple weight="bold" className="h-3.5 w-3.5" />
+                              <span>Open / Download Audio</span>
+                            </>
+                          ) : (
+                            <>
+                              <ArrowSquareOut weight="bold" className="h-3.5 w-3.5" />
+                              <span>Open Source Link</span>
+                            </>
+                          )}
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleCopyAssetLink(asset.id, asset.url)}
+                          className="text-xs font-semibold text-muted hover:text-ink transition"
+                        >
+                          {copiedAssetId === asset.id ? 'Copied' : 'Copy link'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

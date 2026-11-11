@@ -80,6 +80,18 @@ export interface AccountHolderReputation {
   missed_deadlines_count: number;
 }
 
+export type InstructionAssetType = 'link' | 'image' | 'audio' | 'file';
+
+export interface InstructionAsset {
+  id: string;
+  type: InstructionAssetType;
+  title: string;
+  url: string;
+  file_name?: string;
+  file_size_bytes?: number;
+  note?: string;
+}
+
 export interface Campaign {
   id: string;
   owner_id: string;
@@ -87,6 +99,7 @@ export interface Campaign {
   brief: string;
   niche: string;
   source_links: string[];
+  instruction_assets?: InstructionAsset[];
   platforms: PlatformId[];
   target_page_handles: string[];
   aspect_ratio: '9:16' | '1:1' | '16:9' | '4:5';
